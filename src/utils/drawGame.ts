@@ -1,50 +1,114 @@
-import { GRID_SIZE } from "../constants";
-import type { Vec2 } from "../types";
+import { GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
+import type { PlayerType, Vec2 } from "../types";
 
 export const drawGame = (
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  playerPos: Vec2,
-  path: Vec2[],
+  localPlayer: PlayerType,
   available: Vec2[],
+  otherPlayers: PlayerType[],
 ) => {
+  if (!localPlayer.path) return;
+
   ctx.clearRect(0, 0, width, height);
 
-  ctx.strokeStyle = "#ccc";
-  for (let x = 0; x <= width; x += GRID_SIZE) {
+  ctx.save();
+
+  const offsetX =
+    width / 2 - localPlayer.position.x * GRID_SIZE - GRID_SIZE / 2;
+  const offsetY =
+    height / 2 - localPlayer.position.y * GRID_SIZE - GRID_SIZE / 2;
+  ctx.translate(offsetX, offsetY);
+
+  ctx.strokeStyle = "#aaa";
+  for (let x = 0; x <= GRID_COLS; x++) {
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
+    ctx.moveTo(x * GRID_SIZE, 0);
+    ctx.lineTo(x * GRID_SIZE, GRID_SIZE * GRID_ROWS);
     ctx.stroke();
   }
-  for (let y = 0; y <= height; y += GRID_SIZE) {
+
+  for (let y = 0; y <= GRID_ROWS; y++) {
     ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
+    ctx.moveTo(0, y * GRID_SIZE);
+    ctx.lineTo(GRID_SIZE * GRID_COLS, y * GRID_SIZE);
     ctx.stroke();
   }
 
   ctx.fillStyle = "gray";
   available.forEach(({ x, y }) => {
     ctx.beginPath();
-    ctx.arc(x * GRID_SIZE, y * GRID_SIZE, 5, 0, 2 * Math.PI);
+    ctx.arc(
+      x * GRID_SIZE + GRID_SIZE / 2,
+      y * GRID_SIZE + GRID_SIZE / 2,
+      5,
+      0,
+      2 * Math.PI,
+    );
     ctx.fill();
   });
 
-  if (path.length > 1) {
-    ctx.strokeStyle = "blue";
+  otherPlayers.forEach((player) => {
+    const { x, y } = player.position;
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.arc(
+      x * GRID_SIZE + GRID_SIZE / 2,
+      y * GRID_SIZE + GRID_SIZE / 2,
+      5,
+      0,
+      2 * Math.PI,
+    );
+    ctx.fill();
+  });
+
+  if (localPlayer.path.length > 1) {
+    ctx.strokeStyle = localPlayer.color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(path[0].x * GRID_SIZE, path[0].y * GRID_SIZE);
-    for (let i = 1; i < path.length; i++) {
-      ctx.lineTo(path[i].x * GRID_SIZE, path[i].y * GRID_SIZE);
+    ctx.moveTo(
+      localPlayer.path[0].x * GRID_SIZE + GRID_SIZE / 2,
+      localPlayer.path[0].y * GRID_SIZE + GRID_SIZE / 2,
+    );
+    for (let i = 1; i < localPlayer.path.length; i++) {
+      ctx.lineTo(
+        localPlayer.path[i].x * GRID_SIZE + GRID_SIZE / 2,
+        localPlayer.path[i].y * GRID_SIZE + GRID_SIZE / 2,
+      );
     }
     ctx.stroke();
   }
 
-  ctx.fillStyle = "red";
+  for (const player of otherPlayers) {
+    if (!player.path || player.path.length < 2) continue;
+
+    ctx.strokeStyle = player.color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(
+      player.path[0].x * GRID_SIZE + GRID_SIZE / 2,
+      player.path[0].y * GRID_SIZE + GRID_SIZE / 2,
+    );
+    for (let i = 1; i < player.path.length; i++) {
+      ctx.lineTo(
+        player.path[i].x * GRID_SIZE + GRID_SIZE / 2,
+        player.path[i].y * GRID_SIZE + GRID_SIZE / 2,
+      );
+    }
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = localPlayer.color;
   ctx.beginPath();
-  ctx.arc(playerPos.x * GRID_SIZE, playerPos.y * GRID_SIZE, 6, 0, 2 * Math.PI);
+  ctx.arc(
+    localPlayer.position.x * GRID_SIZE + GRID_SIZE / 2,
+    localPlayer.position.y * GRID_SIZE + GRID_SIZE / 2,
+    6,
+    0,
+    2 * Math.PI,
+  );
   ctx.fill();
+
+  ctx.restore();
 };

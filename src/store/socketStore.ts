@@ -2,7 +2,7 @@ import type { Socket } from "socket.io-client";
 import ioClient from "socket.io-client";
 
 import { create } from "zustand";
-import type { PlayerType, Vec2 } from "../types";
+import type { GameDataType, Vec2 } from "../types";
 
 export type PlayerMovedData = {
   newPos: Vec2;
@@ -11,7 +11,7 @@ export type PlayerMovedData = {
 };
 
 type ServerToClientEvents = {
-  "game-found": (gameInfo: { players: PlayerType[] }) => void;
+  "game-found": (gameInfo: GameDataType) => void;
   "player-moved": (data: PlayerMovedData) => void;
 };
 
