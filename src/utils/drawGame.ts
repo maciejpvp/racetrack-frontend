@@ -1,4 +1,5 @@
 import { GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
+import { drawDonutTrack } from "../maps/donut";
 import type { PlayerType, Vec2 } from "../types";
 
 export const drawGame = (
@@ -21,7 +22,7 @@ export const drawGame = (
     height / 2 - localPlayer.position.y * GRID_SIZE - GRID_SIZE / 2;
   ctx.translate(offsetX, offsetY);
 
-  ctx.strokeStyle = "#aaa";
+  ctx.strokeStyle = "#c4c4c4";
   for (let x = 0; x <= GRID_COLS; x++) {
     ctx.beginPath();
     ctx.moveTo(x * GRID_SIZE, 0);
@@ -36,7 +37,7 @@ export const drawGame = (
     ctx.stroke();
   }
 
-  ctx.fillStyle = "gray";
+  ctx.fillStyle = localPlayer.color;
   available.forEach(({ x, y }) => {
     ctx.beginPath();
     ctx.arc(
@@ -48,6 +49,8 @@ export const drawGame = (
     );
     ctx.fill();
   });
+
+  drawDonutTrack(ctx);
 
   otherPlayers.forEach((player) => {
     const { x, y } = player.position;

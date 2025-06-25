@@ -5,6 +5,11 @@ import { GRID_SIZE } from "./constants";
 import type { PlayerType, Vec2 } from "./types";
 import { useSocketStore, type PlayerMovedData } from "./store/socketStore";
 import { useGameStore } from "./store/gameStore";
+import { useEditorStore } from "./store/editorStore";
+import { isOnTrack } from "./utils/isOnTrack";
+import { track } from "./maps/donut";
+
+const EDITOR_MODE = false;
 
 export const Game: React.FC = () => {
   const socket = useSocketStore((store) => store.socket);
@@ -12,6 +17,8 @@ export const Game: React.FC = () => {
   const gameData = useGameStore((store) => store.gameData);
 
   const players = gameData?.players || [];
+
+  const addEditorCord = useEditorStore((store) => store.addCord);
 
   const [localPlayer, setLocalPlayer] = useState(() => {
     const found = players.find((p) => p.id === socket?.id);
@@ -51,23 +58,27 @@ export const Game: React.FC = () => {
     const clickX = rawClickX - offsetX;
     const clickY = rawClickY - offsetY;
 
-    console.log(clickX, clickY);
-
     const validMoves = getAvailableMoves(
       localPlayer.position,
       localPlayer.velocity,
     );
 
-    const clicked = validMoves.find((pos) => {
-      const nodeX = pos.x * GRID_SIZE + GRID_SIZE / 2;
-      const nodeY = pos.y * GRID_SIZE + GRID_SIZE / 2;
-      const dist = Math.hypot(nodeX - clickX, nodeY - clickY);
-      return dist < 10;
-    });
-
-    console.log(clicked);
+    let clicked;
+    if (!EDITOR_MODE) {
+      clicked = validMoves.find((pos) => {
+        const nodeX = pos.x * GRID_SIZE + GRID_SIZE / 2;
+        const nodeY = pos.y * GRID_SIZE + GRID_SIZE / 2;
+        const dist = Math.hypot(nodeX - clickX, nodeY - clickY);
+        return dist < 10;
+      });
+    } else {
+      const tileX = Math.floor(clickX / GRID_SIZE);
+      const tileY = Math.floor(clickY / GRID_SIZE);
+      clicked = { x: tileX, y: tileY };
+    }
 
     if (clicked) {
+      console.log(isOnTrack(localPlayer.position, track));
       handleMove(clicked);
     }
   };
@@ -86,6 +97,7 @@ export const Game: React.FC = () => {
             path: prev.path ? [...prev.path, data.newPos] : [data.newPos],
           };
         });
+        addEditorCord(data.newPos);
       } else {
         setOtherPlayer((prev) =>
           prev.map((player) => {
@@ -104,7 +116,7 @@ export const Game: React.FC = () => {
     return () => {
       socket.off("player-moved", handler);
     };
-  }, [socket, otherPlayers]);
+  }, [socket, otherPlayers, addEditorCord]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -125,8 +137,6 @@ export const Game: React.FC = () => {
       localPlayer.position,
       localPlayer.velocity,
     );
-
-    console.log({ otherPlayers });
 
     drawGame(ctx, width, height, localPlayer, available, otherPlayers);
   }, [localPlayer, otherPlayers]);
