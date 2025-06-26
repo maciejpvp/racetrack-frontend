@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Editor</title>
+    <style>
+      body {
+        margin: 0;
+        background: #111;
+        color: white;
+        font-family: sans-serif;
+      }
+      canvas {
+        display: block;
+        background: #222;
+        cursor: crosshair;
+      }
+      #controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 10;
+      }
+      button,
+      input {
+        margin-right: 5px;
+        padding: 5px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <button id="modeOuter">Draw Outer</button>
+      <button id="modeInner">Draw Inner</button>
+      <button id="modeStart">Set Start</button>
+      <button id="modeCheckpoint">Add Checkpoint</button>
+      <button id="modeFinish">Set Finish</button>
+      <input id="mapName" type="text" placeholder="Map Name" />
+      <button id="export">Export JSON</button>
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const GRID_SIZE = 40;
+      const COLS = 100;
+      const ROWS = 100;
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = COLS * GRID_SIZE;
+      canvas.height = ROWS * GRID_SIZE;
+
+      let mode = "outer";
+      let outerBoundary = [];
+      let innerBoundary = [];
+      let startPosition = null;
+      let checkpoints = []; // { a: Vec2, b: Vec2 }[]
+      let finish = null; // { a: Vec2, b: Vec2 }
+
+      const history = [];
+
+      function saveState() {
+        history.push({
+          outerBoundary: [...outerBoundary],
+          innerBoundary: [...innerBoundary],
+          startPosition: startPosition ? { ...startPosition } : null,
+          checkpoints: checkpoints.map((c) => ({
+            a: { ...c.a },
+            b: { ...c.b },
+          })),
+          finish: finish ? { a: { ...finish.a }, b: { ...finish.b } } : null,
+        });
+      }
+
+      document.getElementById("modeOuter").onclick = () => (mode = "outer");
+      document.getElementById("modeInner").onclick = () => (mode = "inner");
+      document.getElementById("modeStart").onclick = () => (mode = "start");
+      document.getElementById("modeCheckpoint").onclick = () =>
+        (mode = "checkpoint");
+      document.getElementById("modeFinish").onclick = () => (mode = "finish");
+
+      document.getElementById("export").onclick = () => {
+        const name = document.getElementById("mapName").value || "Unnamed Map";
+        const data = JSON.stringify(
+          {
+            name,
+            outerBoundary,
+            innerBoundary,
+            startPosition,
+            checkpoints,
+            finish,
+          },
+          null,
+          2,
+        );
+        const blob = new Blob([data], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = name.replace(/\s+/g, "_").toLowerCase() + ".json";
+        link.click();
+      };
+
+      let lineStart = null;
+
+      canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) / GRID_SIZE);
+        const y = Math.floor((e.clientY - rect.top) / GRID_SIZE);
+
+        saveState();
+
+        if (mode === "outer") {
+          outerBoundary.push({ x, y });
+        } else if (mode === "inner") {
+          innerBoundary.push({ x, y });
+        } else if (mode === "start") {
+          startPosition = { x, y };
+        } else if (mode === "checkpoint" || mode === "finish") {
+          if (!lineStart) {
+            lineStart = { x, y };
+          } else {
+            const line = { a: lineStart, b: { x, y } };
+            if (mode === "checkpoint") checkpoints.push(line);
+            else finish = line;
+            lineStart = null;
+          }
+        }
+
+        draw();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key === "z") {
+          const prev = history.pop();
+          if (prev) {
+            outerBoundary = prev.outerBoundary;
+            innerBoundary = prev.innerBoundary;
+            startPosition = prev.startPosition;
+            checkpoints = prev.checkpoints;
+            finish = prev.finish;
+            draw();
+          }
+        }
+      });
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawGrid();
+        drawPath(outerBoundary, "red");
+        drawPath(innerBoundary, "blue");
+        if (startPosition) drawMarker(startPosition, "lime", 6);
+        checkpoints.forEach((line, i) => drawLine(line, "yellow", i + 1));
+        if (finish) drawLine(finish, "white", "F");
+      }
+
+      function drawGrid() {
+        ctx.strokeStyle = "#333";
+        for (let x = 0; x <= canvas.width; x += GRID_SIZE) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        for (let y = 0; y <= canvas.height; y += GRID_SIZE) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+      }
+
+      function drawPath(path, color) {
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+
+        path.forEach(({ x, y }, i) => {
+          ctx.beginPath();
+          ctx.arc(
+            x * GRID_SIZE + GRID_SIZE / 2,
+            y * GRID_SIZE + GRID_SIZE / 2,
+            4,
+            0,
+            2 * Math.PI,
+          );
+          ctx.fill();
+
+          if (i > 0) {
+            const prev = path[i - 1];
+            ctx.beginPath();
+            ctx.moveTo(
+              prev.x * GRID_SIZE + GRID_SIZE / 2,
+              prev.y * GRID_SIZE + GRID_SIZE / 2,
+            );
+            ctx.lineTo(
+              x * GRID_SIZE + GRID_SIZE / 2,
+              y * GRID_SIZE + GRID_SIZE / 2,
+            );
+            ctx.stroke();
+          }
+        });
+      }
+
+      function drawMarker(pos, color, radius = 6, label = null) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(
+          pos.x * GRID_SIZE + GRID_SIZE / 2,
+          pos.y * GRID_SIZE + GRID_SIZE / 2,
+          radius,
+          0,
+          2 * Math.PI,
+        );
+        ctx.fill();
+        if (label) {
+          ctx.fillStyle = "black";
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(
+            label,
+            pos.x * GRID_SIZE + GRID_SIZE / 2,
+            pos.y * GRID_SIZE + GRID_SIZE / 2,
+          );
+        }
+      }
+
+      function drawLine(line, color, label = null) {
+        const { a, b } = line;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(
+          a.x * GRID_SIZE + GRID_SIZE / 2,
+          a.y * GRID_SIZE + GRID_SIZE / 2,
+        );
+        ctx.lineTo(
+          b.x * GRID_SIZE + GRID_SIZE / 2,
+          b.y * GRID_SIZE + GRID_SIZE / 2,
+        );
+        ctx.stroke();
+        if (label !== null) {
+          const midX = ((a.x + b.x) / 2) * GRID_SIZE + GRID_SIZE / 2;
+          const midY = ((a.y + b.y) / 2) * GRID_SIZE + GRID_SIZE / 2;
+          ctx.fillStyle = "black";
+          ctx.font = "12px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(label, midX, midY);
+        }
+      }
+
+      draw();
+    </script>
+  </body>
+</html>

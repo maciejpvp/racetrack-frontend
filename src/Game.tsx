@@ -7,9 +7,11 @@ import { useSocketStore, type PlayerMovedData } from "./store/socketStore";
 import { useGameStore } from "./store/gameStore";
 import { useEditorStore } from "./store/editorStore";
 import { isOnTrack } from "./utils/isOnTrack";
-import { first } from "./maps/donut";
+import { First } from "./maps/First";
 
 const EDITOR_MODE = false;
+let checkpointIndex = 0;
+let finished = false;
 
 export const Game: React.FC = () => {
   const socket = useSocketStore((store) => store.socket);
@@ -69,7 +71,7 @@ export const Game: React.FC = () => {
         const nodeX = pos.x * GRID_SIZE + GRID_SIZE / 2;
         const nodeY = pos.y * GRID_SIZE + GRID_SIZE / 2;
         const dist = Math.hypot(nodeX - clickX, nodeY - clickY);
-        return dist < 10;
+        return dist < 30;
       });
     } else {
       const tileX = Math.floor(clickX / GRID_SIZE);
@@ -78,7 +80,7 @@ export const Game: React.FC = () => {
     }
 
     if (clicked) {
-      console.log(isOnTrack(clicked, first));
+      console.log(isOnTrack(clicked, First));
       handleMove(clicked);
     }
   };
@@ -87,6 +89,7 @@ export const Game: React.FC = () => {
     if (!socket) return;
 
     const handler = (data: PlayerMovedData) => {
+      console.log(data);
       if (data.playerId === socket.id) {
         setLocalPlayer((prev) => {
           if (!prev) return prev;
@@ -94,7 +97,9 @@ export const Game: React.FC = () => {
             ...prev,
             position: data.newPos,
             velocity: data.newVelocity,
-            path: prev.path ? [...prev.path, data.newPos] : [data.newPos],
+            path: prev.path
+              ? [...prev.path, data.newPos].slice(-10)
+              : [data.newPos],
           };
         });
         addEditorCord(data.newPos);
@@ -119,31 +124,34 @@ export const Game: React.FC = () => {
   }, [socket, otherPlayers, addEditorCord]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !localPlayer) return;
-    // canvas.width = GRID_COLS * GRID_SIZE;
-    // canvas.height = GRID_ROWS * GRID_SIZE;
+    let animationFrameId = 0;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const render = () => {
+      const canvas = canvasRef.current;
+      if (!canvas || !localPlayer) return;
 
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-    canvas.width = width;
-    canvas.height = height;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
 
-    const available = getAvailableMoves(
-      localPlayer.position,
-      localPlayer.velocity,
-    );
+      canvas.width = width;
+      canvas.height = height;
 
-    drawGame(ctx, width, height, localPlayer, available, otherPlayers);
+      const available = getAvailableMoves(
+        localPlayer.position,
+        localPlayer.velocity,
+      );
+
+      drawGame(ctx, width, height, localPlayer, available, otherPlayers);
+
+      animationFrameId = requestAnimationFrame(render); // <- zawsze ustaw
+    };
+
+    animationFrameId = requestAnimationFrame(render); // <- zaczynamy animację tutaj
+    return () => cancelAnimationFrame(animationFrameId);
   }, [localPlayer, otherPlayers]);
-
-  useEffect(() => {
-    if (!socket) return;
-  }, [socket]);
 
   return (
     <div className="bg-zinc-200">
