@@ -8,6 +8,7 @@ export type PlayerMovedData = {
   newPos: Vec2;
   newVelocity: Vec2;
   playerId: string;
+  playerTurn: string;
 };
 
 type ServerToClientEvents = {

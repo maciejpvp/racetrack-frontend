@@ -19,9 +19,6 @@ interface CheckpointResult {
   finished: boolean;
 }
 
-/**
- * Sprawdza, czy gracz przekroczył checkpoint lub metę w odpowiedniej kolejności
- */
 export function checkCheckpointProgress(
   lastPos: Vec2,
   newPos: Vec2,
@@ -32,7 +29,6 @@ export function checkCheckpointProgress(
   const segmentA = lastPos;
   const segmentB = newPos;
 
-  // Sprawdź kolejny wymagany checkpoint
   if (checkpointIndex < checkpoints.length) {
     const cp = checkpoints[checkpointIndex];
     if (linesIntersect(segmentA, segmentB, cp.a, cp.b)) {
@@ -43,7 +39,6 @@ export function checkCheckpointProgress(
     }
   }
 
-  // Sprawdź metę, jeśli wszystkie checkpointy zostały zaliczone
   if (checkpointIndex === checkpoints.length && finish) {
     if (linesIntersect(segmentA, segmentB, finish.a, finish.b)) {
       return {

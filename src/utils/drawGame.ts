@@ -11,6 +11,7 @@ export const drawGame = (
   localPlayer: PlayerType,
   available: Vec2[],
   otherPlayers: PlayerType[],
+  isYourTurn: boolean,
 ) => {
   if (!localPlayer.path) return;
 
@@ -40,18 +41,20 @@ export const drawGame = (
     ctx.stroke();
   }
 
-  ctx.fillStyle = localPlayer.color;
-  available.forEach(({ x, y }) => {
-    ctx.beginPath();
-    ctx.arc(
-      x * GRID_SIZE + GRID_SIZE / 2,
-      y * GRID_SIZE + GRID_SIZE / 2,
-      5,
-      0,
-      2 * Math.PI,
-    );
-    ctx.fill();
-  });
+  if (isYourTurn) {
+    ctx.fillStyle = localPlayer.color;
+    available.forEach(({ x, y }) => {
+      ctx.beginPath();
+      ctx.arc(
+        x * GRID_SIZE + GRID_SIZE / 2,
+        y * GRID_SIZE + GRID_SIZE / 2,
+        5,
+        0,
+        2 * Math.PI,
+      );
+      ctx.fill();
+    });
+  }
 
   drawTrack(ctx);
 

@@ -17,4 +17,5 @@ export type PlayerType = {
 export type GameDataType = {
   id: string;
   players: PlayerType[];
+  playerTurn: string;
 };

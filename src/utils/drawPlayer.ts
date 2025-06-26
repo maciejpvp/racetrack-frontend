@@ -11,7 +11,7 @@ export const drawPlayer = (
   gridSize: number,
   path: Vec2[],
 ) => {
-  const speed = 0.15; // krok na animację (np. komórki na frame)
+  const speed = 0.15; //Animation speed
 
   let rendered = renderedPositions.get(color);
   if (!rendered) {
@@ -19,7 +19,6 @@ export const drawPlayer = (
     renderedPositions.set(color, rendered);
   }
 
-  // Różnica i odległość
   const dx = targetPos.x - rendered.x;
   const dy = targetPos.y - rendered.y;
   const dist = Math.sqrt(dx * dx + dy * dy);

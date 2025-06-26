@@ -15,6 +15,8 @@ let finished = false;
 
 export const Game: React.FC = () => {
   const socket = useSocketStore((store) => store.socket);
+  const isYourTurn = useGameStore((store) => store.isYourTurn);
+  const setIsYourTurn = useGameStore((store) => store.setIsYourTurn);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameData = useGameStore((store) => store.gameData);
   const [isPlayerOnTrack, setIsPlayerOnTrack] = useState<boolean>(true);
@@ -114,6 +116,9 @@ export const Game: React.FC = () => {
     if (!socket) return;
 
     const handler = (data: PlayerMovedData) => {
+      console.log(data);
+      setIsYourTurn(data.playerTurn === socket.id ? true : false);
+
       if (data.playerId === socket.id) {
         setLocalPlayer((prev) => {
           if (!prev) return prev;
@@ -168,14 +173,22 @@ export const Game: React.FC = () => {
         localPlayer.velocity,
       );
 
-      drawGame(ctx, width, height, localPlayer, available, otherPlayers);
+      drawGame(
+        ctx,
+        width,
+        height,
+        localPlayer,
+        available,
+        otherPlayers,
+        isYourTurn,
+      );
 
       animationFrameId = requestAnimationFrame(render);
     };
 
     animationFrameId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [localPlayer, otherPlayers]);
+  }, [localPlayer, otherPlayers, isYourTurn]);
 
   return (
     <div className="bg-zinc-200">

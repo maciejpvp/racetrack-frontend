@@ -11,7 +11,6 @@ export const drawTrackHelper = (
   ctx.lineWidth = lineWidth;
   ctx.beginPath();
 
-  // Przelicz na piksele
   ctx.moveTo(
     points[0].x * gridSize + gridSize / 2,
     points[0].y * gridSize + gridSize / 2,
