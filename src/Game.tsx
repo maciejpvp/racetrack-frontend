@@ -7,7 +7,7 @@ import { useSocketStore, type PlayerMovedData } from "./store/socketStore";
 import { useGameStore } from "./store/gameStore";
 import { useEditorStore } from "./store/editorStore";
 import { isOnTrack } from "./utils/isOnTrack";
-import { track } from "./maps/donut";
+import { first } from "./maps/donut";
 
 const EDITOR_MODE = false;
 
@@ -78,7 +78,7 @@ export const Game: React.FC = () => {
     }
 
     if (clicked) {
-      console.log(isOnTrack(localPlayer.position, track));
+      console.log(isOnTrack(clicked, first));
       handleMove(clicked);
     }
   };
@@ -146,7 +146,7 @@ export const Game: React.FC = () => {
   }, [socket]);
 
   return (
-    <div>
+    <div className="bg-zinc-200">
       <canvas
         ref={canvasRef}
         onClick={handleClick}

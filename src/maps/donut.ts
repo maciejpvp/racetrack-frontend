@@ -1,8 +1,8 @@
 import { GRID_SIZE } from "../constants";
-import { drawTrack } from "../utils/drawTrack";
+import { drawTrackHelper } from "../utils/drawTrackHelper";
 
-export const track = {
-  name: "SVG Donut Track",
+export const first = {
+  name: "First Track",
 
   outerBoundary: [
     { x: 85, y: 87 },
@@ -69,7 +69,7 @@ export const track = {
   startPosition: { x: 42, y: 15, angle: 0 },
 };
 
-export const drawDonutTrack = (ctx: CanvasRenderingContext2D) => {
+export const drawTrack = (ctx: CanvasRenderingContext2D) => {
   // EXAMPLE MAP GENARATION!!!
   //   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
   //   <path style="fill: rgb(216, 216, 216); stroke: rgb(0, 0, 0);" d="M 424.862 436.464 L 356.906 465.193 L 211.602 476.796 L 80.663 450.276 L 37.569 390.608 L 17.127 337.017 L 12.707 234.254 L 21.547 214.917 L 32.044 201.657 L 71.823 213.26 L 97.238 243.646 L 125.967 296.133 L 156.906 278.453 L 139.779 205.525 L 80.663 162.431 L 26.519 114.365 L 8.84 65.193 L 41.989 22.652 L 114.917 18.785 L 209.945 26.519 L 261.878 29.282 L 304.972 44.199 L 359.669 82.873 L 390.608 131.492 L 427.624 198.343 L 434.254 260.221 L 436.464 339.779 L 424.862 436.464 Z"/>
@@ -77,6 +77,6 @@ export const drawDonutTrack = (ctx: CanvasRenderingContext2D) => {
   // </svg>`;
   //   console.log("Map Array: ", mapGenerator(svg));
 
-  drawTrack(ctx, track.innerBoundary, "black", GRID_SIZE, 10);
-  drawTrack(ctx, track.outerBoundary, "black", GRID_SIZE, 10);
+  drawTrackHelper(ctx, first.innerBoundary, "black", GRID_SIZE, 10);
+  drawTrackHelper(ctx, first.outerBoundary, "black", GRID_SIZE, 10);
 };

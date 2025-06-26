@@ -1,6 +1,7 @@
 import { GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
-import { drawDonutTrack } from "../maps/donut";
+import { drawTrack } from "../maps/donut";
 import type { PlayerType, Vec2 } from "../types";
+import { drawPlayer } from "./drawPlayer";
 
 export const drawGame = (
   ctx: CanvasRenderingContext2D,
@@ -50,7 +51,7 @@ export const drawGame = (
     ctx.fill();
   });
 
-  drawDonutTrack(ctx);
+  drawTrack(ctx);
 
   otherPlayers.forEach((player) => {
     const { x, y } = player.position;
@@ -102,16 +103,13 @@ export const drawGame = (
     ctx.stroke();
   }
 
-  ctx.fillStyle = localPlayer.color;
-  ctx.beginPath();
-  ctx.arc(
-    localPlayer.position.x * GRID_SIZE + GRID_SIZE / 2,
-    localPlayer.position.y * GRID_SIZE + GRID_SIZE / 2,
-    6,
-    0,
-    2 * Math.PI,
+  drawPlayer(
+    ctx,
+    localPlayer.position,
+    localPlayer.velocity,
+    localPlayer.color,
+    GRID_SIZE,
   );
-  ctx.fill();
 
   ctx.restore();
 };

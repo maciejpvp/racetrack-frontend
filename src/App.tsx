@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSocketStore } from "./store/socketStore";
 import { Game } from "./Game";
 import { useGameStore } from "./store/gameStore";
+import { MainMenu } from "./MainMenu";
 
 export const App = () => {
   const connect = useSocketStore((store) => store.connect);
@@ -9,14 +10,6 @@ export const App = () => {
   const isInGame = useGameStore((store) => store.isInGame);
   const setInGame = useGameStore((store) => store.setIsInGame);
   const setGameData = useGameStore((store) => store.setGameData);
-
-  const joinQueue = () => {
-    if (!socket) return;
-
-    socket.emit("join-queue", (response) => {
-      console.log(response);
-    });
-  };
 
   useEffect(() => {
     connect();
@@ -28,7 +21,5 @@ export const App = () => {
     });
   }, [connect, socket, setInGame, setGameData]);
 
-  return (
-    <>{isInGame ? <Game /> : <button onClick={joinQueue}>Join Queue</button>}</>
-  );
+  return <>{isInGame ? <Game /> : <MainMenu />}</>;
 };

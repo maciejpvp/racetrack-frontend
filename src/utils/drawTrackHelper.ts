@@ -1,4 +1,4 @@
-export const drawTrack = (
+export const drawTrackHelper = (
   ctx: CanvasRenderingContext2D,
   points: { x: number; y: number }[],
   color: string,
