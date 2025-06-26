@@ -11,6 +11,7 @@ export type PlayerType = {
   position: Vec2;
   velocity: Vec2;
   path?: Vec2[];
+  checkpointIndex: number;
 };
 
 export type GameDataType = {

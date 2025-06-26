@@ -8,15 +8,16 @@ import { useGameStore } from "./store/gameStore";
 import { useEditorStore } from "./store/editorStore";
 import { isOnTrack } from "./utils/isOnTrack";
 import { First } from "./maps/First";
+import { checkCheckpointProgress } from "./utils/checkIntersect";
 
 const EDITOR_MODE = false;
-let checkpointIndex = 0;
 let finished = false;
 
 export const Game: React.FC = () => {
   const socket = useSocketStore((store) => store.socket);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameData = useGameStore((store) => store.gameData);
+  const [isPlayerOnTrack, setIsPlayerOnTrack] = useState<boolean>(true);
 
   const players = gameData?.players || [];
 
@@ -80,8 +81,32 @@ export const Game: React.FC = () => {
     }
 
     if (clicked) {
-      console.log(isOnTrack(clicked, First));
       handleMove(clicked);
+      setIsPlayerOnTrack(isOnTrack(clicked, First));
+      ///////////
+      const { checkpointIndex: newIndex, finished: isFinished } =
+        checkCheckpointProgress(
+          localPlayer.position,
+          clicked!,
+          First.checkpoints,
+          First.finish,
+          localPlayer.checkpointIndex,
+        );
+
+      setLocalPlayer((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          checkpointIndex: newIndex,
+        };
+      });
+
+      console.log(localPlayer.checkpointIndex);
+      finished = isFinished;
+
+      if (finished) {
+        console.log("🏁 Wyścig ukończony!");
+      }
     }
   };
 
@@ -89,7 +114,6 @@ export const Game: React.FC = () => {
     if (!socket) return;
 
     const handler = (data: PlayerMovedData) => {
-      console.log(data);
       if (data.playerId === socket.id) {
         setLocalPlayer((prev) => {
           if (!prev) return prev;
@@ -146,15 +170,20 @@ export const Game: React.FC = () => {
 
       drawGame(ctx, width, height, localPlayer, available, otherPlayers);
 
-      animationFrameId = requestAnimationFrame(render); // <- zawsze ustaw
+      animationFrameId = requestAnimationFrame(render);
     };
 
-    animationFrameId = requestAnimationFrame(render); // <- zaczynamy animację tutaj
+    animationFrameId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animationFrameId);
   }, [localPlayer, otherPlayers]);
 
   return (
     <div className="bg-zinc-200">
+      {!isPlayerOnTrack && (
+        <div className="absolute bg-zinc-200 p-2 top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <p className="font-handwriting text-4xl">Get Back On Track!</p>
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         onClick={handleClick}
