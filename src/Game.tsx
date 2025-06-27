@@ -5,10 +5,10 @@ import { GRID_SIZE } from "./constants";
 import type { PlayerType, Vec2 } from "./types";
 import { useSocketStore, type PlayerMovedData } from "./store/socketStore";
 import { useGameStore } from "./store/gameStore";
-import { useEditorStore } from "./store/editorStore";
 import { isOnTrack } from "./utils/isOnTrack";
 import { First } from "./maps/First";
 import { checkCheckpointProgress } from "./utils/checkIntersect";
+import { Overlay } from "./Overlay";
 
 const EDITOR_MODE = false;
 let finished = false;
@@ -22,8 +22,6 @@ export const Game: React.FC = () => {
   const [isPlayerOnTrack, setIsPlayerOnTrack] = useState<boolean>(true);
 
   const players = gameData?.players || [];
-
-  const addEditorCord = useEditorStore((store) => store.addCord);
 
   const [localPlayer, setLocalPlayer] = useState(() => {
     const found = players.find((p) => p.id === socket?.id);
@@ -40,6 +38,8 @@ export const Game: React.FC = () => {
         };
       }),
   );
+
+  const [leaderboard, setLeaderboard] = useState<PlayerType[]>([]);
 
   const handleMove = (newPos: Vec2) => {
     if (!socket) return;
@@ -118,6 +118,7 @@ export const Game: React.FC = () => {
     const handler = (data: PlayerMovedData) => {
       console.log(data);
       setIsYourTurn(data.playerTurn === socket.id ? true : false);
+      setLeaderboard(data.leaderboard);
 
       if (data.playerId === socket.id) {
         setLocalPlayer((prev) => {
@@ -131,7 +132,6 @@ export const Game: React.FC = () => {
               : [data.newPos],
           };
         });
-        addEditorCord(data.newPos);
       } else {
         setOtherPlayer((prev) =>
           prev.map((player) => {
@@ -150,7 +150,7 @@ export const Game: React.FC = () => {
     return () => {
       socket.off("player-moved", handler);
     };
-  }, [socket, otherPlayers, addEditorCord]);
+  }, [socket, otherPlayers, setIsYourTurn]);
 
   useEffect(() => {
     let animationFrameId = 0;
@@ -191,12 +191,12 @@ export const Game: React.FC = () => {
   }, [localPlayer, otherPlayers, isYourTurn]);
 
   return (
-    <div className="bg-zinc-200">
-      {!isPlayerOnTrack && (
-        <div className="absolute bg-zinc-200 p-2 top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <p className="font-handwriting text-4xl">Get Back On Track!</p>
-        </div>
-      )}
+    <div className="bg-zinc-300">
+      <Overlay
+        isPlayerOnTrack={isPlayerOnTrack}
+        place={1}
+        leaderboard={leaderboard}
+      />
       <canvas
         ref={canvasRef}
         onClick={handleClick}

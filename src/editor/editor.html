@@ -38,6 +38,7 @@
       <button id="modeFinish">Set Finish</button>
       <input id="mapName" type="text" placeholder="Map Name" />
       <button id="export">Export JSON</button>
+      <input type="file" id="import" />
     </div>
     <canvas id="canvas"></canvas>
 
@@ -55,8 +56,8 @@
       let outerBoundary = [];
       let innerBoundary = [];
       let startPosition = null;
-      let checkpoints = []; // { a: Vec2, b: Vec2 }[]
-      let finish = null; // { a: Vec2, b: Vec2 }
+      let checkpoints = [];
+      let finish = null;
 
       const history = [];
 
@@ -100,6 +101,28 @@
         link.download = name.replace(/\s+/g, "_").toLowerCase() + ".json";
         link.click();
       };
+
+      document.getElementById("import").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const map = JSON.parse(event.target.result);
+            outerBoundary = map.outerBoundary || [];
+            innerBoundary = map.innerBoundary || [];
+            startPosition = map.startPosition || null;
+            checkpoints = map.checkpoints || [];
+            finish = map.finish || null;
+            document.getElementById("mapName").value = map.name || "";
+            draw();
+          } catch (err) {
+            alert("Invalid map file");
+          }
+        };
+        reader.readAsText(file);
+      });
 
       let lineStart = null;
 

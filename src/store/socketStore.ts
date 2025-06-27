@@ -2,13 +2,14 @@ import type { Socket } from "socket.io-client";
 import ioClient from "socket.io-client";
 
 import { create } from "zustand";
-import type { GameDataType, Vec2 } from "../types";
+import type { GameDataType, PlayerType, Vec2 } from "../types";
 
 export type PlayerMovedData = {
   newPos: Vec2;
   newVelocity: Vec2;
   playerId: string;
   playerTurn: string;
+  leaderboard: PlayerType[];
 };
 
 type ServerToClientEvents = {
