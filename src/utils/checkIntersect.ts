@@ -1,6 +1,4 @@
-import type { Vec2 } from "../types";
-
-type Line = { a: Vec2; b: Vec2 };
+import type { Line, Vec2 } from "../types";
 
 function linesIntersect(a1: Vec2, a2: Vec2, b1: Vec2, b2: Vec2): boolean {
   const det = (a2.x - a1.x) * (b2.y - b1.y) - (a2.y - a1.y) * (b2.x - b1.x);
@@ -40,6 +38,7 @@ export function checkCheckpointProgress(
   }
 
   if (checkpointIndex === checkpoints.length && finish) {
+    console.log(segmentA, segmentB, finish);
     if (linesIntersect(segmentA, segmentB, finish.a, finish.b)) {
       return {
         checkpointIndex,
@@ -47,7 +46,7 @@ export function checkCheckpointProgress(
       };
     }
   }
-
+  console.log("to end");
   return {
     checkpointIndex,
     finished: false,

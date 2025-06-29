@@ -2,23 +2,29 @@ import React, { useEffect, useRef, useState } from "react";
 import { getAvailableMoves } from "./utils/getAvailableMoves";
 import { drawGame } from "./utils/drawGame";
 import { GRID_SIZE } from "./constants";
-import type { PlayerType, Vec2 } from "./types";
+import type { MapType, PlayerType, PlayerWonType, Vec2 } from "./types";
 import { useSocketStore, type PlayerMovedData } from "./store/socketStore";
 import { useGameStore } from "./store/gameStore";
 import { isOnTrack } from "./utils/isOnTrack";
-import { First } from "./maps/First";
 import { checkCheckpointProgress } from "./utils/checkIntersect";
 import { Overlay } from "./Overlay";
+import { useModalsStore } from "./store/modalsStore";
 
 const EDITOR_MODE = false;
 let finished = false;
 
-export const Game: React.FC = () => {
+type Props = {
+  map: MapType;
+};
+
+export const Game = ({ map }: Props) => {
   const socket = useSocketStore((store) => store.socket);
   const isYourTurn = useGameStore((store) => store.isYourTurn);
   const setIsYourTurn = useGameStore((store) => store.setIsYourTurn);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameData = useGameStore((store) => store.gameData);
+  const setDidYouWin = useGameStore((store) => store.setDidYouWin);
+  const setGameResultModal = useModalsStore((store) => store.setGameResult);
   const [isPlayerOnTrack, setIsPlayerOnTrack] = useState<boolean>(true);
 
   const players = gameData?.players || [];
@@ -84,16 +90,18 @@ export const Game: React.FC = () => {
 
     if (clicked) {
       handleMove(clicked);
-      setIsPlayerOnTrack(isOnTrack(clicked, First));
+      setIsPlayerOnTrack(isOnTrack(clicked, map));
       ///////////
       const { checkpointIndex: newIndex, finished: isFinished } =
         checkCheckpointProgress(
           localPlayer.position,
-          clicked!,
-          First.checkpoints,
-          First.finish,
+          clicked,
+          map.checkpoints,
+          map.finish,
           localPlayer.checkpointIndex,
         );
+
+      console.log({ newIndex });
 
       setLocalPlayer((prev) => {
         if (!prev) return null;
@@ -146,11 +154,20 @@ export const Game: React.FC = () => {
         );
       }
     };
+    const PlayerWonHandler = (data: PlayerWonType) => {
+      const didYouWin = data.playerId === socket.id ? true : false;
+
+      setDidYouWin(didYouWin);
+      setGameResultModal(true);
+    };
+
     socket.on("player-moved", handler);
+    socket.on("player-won", PlayerWonHandler);
     return () => {
       socket.off("player-moved", handler);
+      socket.off("player-won", PlayerWonHandler);
     };
-  }, [socket, otherPlayers, setIsYourTurn]);
+  }, [socket, otherPlayers, setIsYourTurn, setDidYouWin, setGameResultModal]);
 
   useEffect(() => {
     let animationFrameId = 0;
@@ -181,6 +198,7 @@ export const Game: React.FC = () => {
         available,
         otherPlayers,
         isYourTurn,
+        map,
       );
 
       animationFrameId = requestAnimationFrame(render);
@@ -188,7 +206,7 @@ export const Game: React.FC = () => {
 
     animationFrameId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [localPlayer, otherPlayers, isYourTurn]);
+  }, [localPlayer, otherPlayers, isYourTurn, map]);
 
   return (
     <div className="bg-zinc-300">

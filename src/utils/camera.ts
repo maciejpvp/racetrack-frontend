@@ -1,6 +1,7 @@
 import type { Vec2 } from "../types";
 
-let renderedCameraPos: Vec2 = { x: 33.5, y: 30.5 };
+let loaded = false;
+let renderedCameraPos: Vec2 = { x: 0, y: 0 };
 
 export const updateCamera = (
   ctx: CanvasRenderingContext2D,
@@ -8,7 +9,13 @@ export const updateCamera = (
   canvasHeight: number,
   targetPos: Vec2,
   gridSize: number,
+  startingPos: Vec2,
 ) => {
+  if (!loaded) {
+    renderedCameraPos = { ...startingPos };
+    loaded = true;
+  }
+
   const speed = 0.15;
 
   const dx = targetPos.x - renderedCameraPos.x;

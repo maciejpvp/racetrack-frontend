@@ -1,3 +1,4 @@
+import { GameResultModal } from "./Modals/GameResultModal";
 import { useSocketStore } from "./store/socketStore";
 import type { PlayerType } from "./types";
 
@@ -20,13 +21,14 @@ const ordinalMap: Record<number, string> = {
   10: "10th",
 };
 
-export const Overlay = ({ isPlayerOnTrack, place, leaderboard }: Props) => {
+export const Overlay = ({ isPlayerOnTrack, leaderboard }: Props) => {
   const socket = useSocketStore((store) => store.socket);
   const playerIndex = leaderboard.findIndex((p) => p.id === socket?.id) + 1;
   console.log(playerIndex);
 
   return (
     <div className="font-handwriting    h-dvh w-dvw absolute pointer-events-none">
+      <GameResultModal />
       {!isPlayerOnTrack && (
         <div className="absolute bg-zinc-200 p-2 top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
           <p className=" text-4xl">Get Back On Track!</p>
@@ -35,11 +37,6 @@ export const Overlay = ({ isPlayerOnTrack, place, leaderboard }: Props) => {
       <p className="text-zinc-800 absolute bottom-10 right-10 text-5xl">
         {ordinalMap[playerIndex]}
       </p>
-      <ul>
-        {leaderboard.map((player) => (
-          <li key={player.id}>{player.id}</li>
-        ))}
-      </ul>
     </div>
   );
 };

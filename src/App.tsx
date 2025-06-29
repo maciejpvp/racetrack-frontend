@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSocketStore } from "./store/socketStore";
 import { Game } from "./Game";
 import { useGameStore } from "./store/gameStore";
 import { MainMenu } from "./MainMenu";
+import type { GameDataType, MapType } from "./types";
+import { useModalsStore } from "./store/modalsStore";
 
 export const App = () => {
   const connect = useSocketStore((store) => store.connect);
@@ -11,18 +13,58 @@ export const App = () => {
   const setInGame = useGameStore((store) => store.setIsInGame);
   const setGameData = useGameStore((store) => store.setGameData);
   const setIsYourTurn = useGameStore((store) => store.setIsYourTurn);
+  const setIsOpenGameTerminate = useModalsStore(
+    (store) => store.setGameTerminateModal,
+  );
+
+  const [map, setMap] = useState<MapType>();
+
+  const fetchMap = useCallback(
+    async (index: number) => {
+      const response = await fetch(`http://127.0.0.1:3000/maps/${index}`);
+      if (!response.ok) return;
+
+      const data = await response.json();
+      setMap(data.map);
+      setInGame(true);
+    },
+    [setInGame, setMap],
+  );
 
   useEffect(() => {
     connect();
 
     if (!socket) return;
-    socket.on("game-found", (data) => {
+
+    const handleGameFound = (data: GameDataType) => {
       console.log({ data });
-      setInGame(true);
+      fetchMap(data.mapIndex);
       setGameData(data);
       setIsYourTurn(data.playerTurn === socket.id ? true : false);
-    });
-  }, [connect, socket, setInGame, setGameData, setIsYourTurn]);
+    };
 
-  return <>{isInGame ? <Game /> : <MainMenu />}</>;
+    const handleGameTerminated = () => {
+      setInGame(false);
+      setMap(undefined);
+      setIsOpenGameTerminate(true);
+    };
+
+    socket.on("game-found", handleGameFound);
+    socket.on("game-terminated", handleGameTerminated);
+
+    return () => {
+      socket.off("game-found", handleGameFound);
+      socket.off("game-terminated", handleGameTerminated);
+    };
+  }, [
+    connect,
+    socket,
+    fetchMap,
+    setGameData,
+    setIsYourTurn,
+    setInGame,
+    setIsOpenGameTerminate,
+  ]);
+
+  return <>{isInGame && map ? <Game map={map} /> : <MainMenu />}</>;
 };

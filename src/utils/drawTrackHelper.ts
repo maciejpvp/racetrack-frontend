@@ -1,4 +1,7 @@
-export const drawTrackHelper = (
+import { GRID_SIZE } from "../constants";
+import type { MapType } from "../types";
+
+const drawTrackHelper = (
   ctx: CanvasRenderingContext2D,
   points: { x: number; y: number }[],
   color: string,
@@ -23,4 +26,9 @@ export const drawTrackHelper = (
   }
 
   ctx.stroke();
+};
+
+export const drawTrack = (ctx: CanvasRenderingContext2D, map: MapType) => {
+  drawTrackHelper(ctx, map.innerBoundary, "black", GRID_SIZE, 10);
+  drawTrackHelper(ctx, map.outerBoundary, "black", GRID_SIZE, 10);
 };

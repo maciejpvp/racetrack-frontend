@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSocketStore } from "./store/socketStore";
+import { GameTerminatedModal } from "./Modals/GameTerminatedModal";
 
 export const MainMenu = () => {
   const socket = useSocketStore((store) => store.socket);
@@ -34,6 +35,8 @@ export const MainMenu = () => {
       >
         {joinedQueue ? "Drawing Track…" : "🕹️ Join Race"}
       </button>
+
+      <GameTerminatedModal />
     </div>
   );
 };

@@ -27,6 +27,14 @@
         margin-right: 5px;
         padding: 5px 10px;
       }
+      #overlayImage {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0.3;
+      }
     </style>
   </head>
   <body>
@@ -39,8 +47,23 @@
       <input id="mapName" type="text" placeholder="Map Name" />
       <button id="export">Export JSON</button>
       <input type="file" id="import" />
+      <input type="file" id="overlayUpload" accept="image/*" />
+      <label
+        >Scale
+        <input
+          type="range"
+          id="overlayScale"
+          min="0.1"
+          max="3"
+          step="0.1"
+          value="1"
+      /></label>
+      <label>X <input type="number" id="overlayOffsetX" value="0" /></label>
+      <label>Y <input type="number" id="overlayOffsetY" value="0" /></label>
     </div>
+
     <canvas id="canvas"></canvas>
+    <img id="overlayImage" />
 
     <script>
       const GRID_SIZE = 40;
@@ -51,6 +74,11 @@
       const ctx = canvas.getContext("2d");
       canvas.width = COLS * GRID_SIZE;
       canvas.height = ROWS * GRID_SIZE;
+
+      const overlayImage = document.getElementById("overlayImage");
+      const overlayScale = document.getElementById("overlayScale");
+      const overlayOffsetX = document.getElementById("overlayOffsetX");
+      const overlayOffsetY = document.getElementById("overlayOffsetY");
 
       let mode = "outer";
       let outerBoundary = [];
@@ -123,6 +151,34 @@
         };
         reader.readAsText(file);
       });
+
+      document
+        .getElementById("overlayUpload")
+        .addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            overlayImage.src = reader.result;
+            overlayImage.onload = positionOverlay;
+          };
+          reader.readAsDataURL(file);
+        });
+
+      [overlayScale, overlayOffsetX, overlayOffsetY].forEach((input) => {
+        input.addEventListener("input", positionOverlay);
+      });
+
+      function positionOverlay() {
+        const scale = parseFloat(overlayScale.value);
+        const offsetX = parseInt(overlayOffsetX.value);
+        const offsetY = parseInt(overlayOffsetY.value);
+
+        overlayImage.style.width = `${canvas.width * scale}px`;
+        overlayImage.style.height = `${canvas.height * scale}px`;
+        overlayImage.style.left = `${offsetX}px`;
+        overlayImage.style.top = `${offsetY}px`;
+      }
 
       let lineStart = null;
 

@@ -1,8 +1,8 @@
 import { GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
-import { drawTrack } from "../maps/First";
-import type { PlayerType, Vec2 } from "../types";
+import type { MapType, PlayerType, Vec2 } from "../types";
 import { updateCamera } from "./camera";
 import { drawPlayer } from "./drawPlayer";
+import { drawTrack } from "./drawTrackHelper";
 
 export const drawGame = (
   ctx: CanvasRenderingContext2D,
@@ -12,6 +12,7 @@ export const drawGame = (
   available: Vec2[],
   otherPlayers: PlayerType[],
   isYourTurn: boolean,
+  map: MapType,
 ) => {
   if (!localPlayer.path) return;
 
@@ -24,7 +25,14 @@ export const drawGame = (
   // const offsetY =
   //   height / 2 - localPlayer.position.y * GRID_SIZE - GRID_SIZE / 2;
   // ctx.translate(offsetX, offsetY);
-  updateCamera(ctx, width, height, localPlayer.position, GRID_SIZE);
+  updateCamera(
+    ctx,
+    width,
+    height,
+    localPlayer.position,
+    GRID_SIZE,
+    map?.startPosition || { x: 0, y: 0 },
+  );
 
   ctx.strokeStyle = "#c4c4c4";
   for (let x = 0; x <= GRID_COLS; x++) {
@@ -56,7 +64,7 @@ export const drawGame = (
     });
   }
 
-  drawTrack(ctx);
+  drawTrack(ctx, map);
 
   drawPlayer(
     ctx,
