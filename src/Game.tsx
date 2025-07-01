@@ -6,12 +6,11 @@ import type { MapType, PlayerType, PlayerWonType, Vec2 } from "./types";
 import { useSocketStore, type PlayerMovedData } from "./store/socketStore";
 import { useGameStore } from "./store/gameStore";
 import { isOnTrack } from "./utils/isOnTrack";
-import { checkCheckpointProgress } from "./utils/checkIntersect";
 import { Overlay } from "./Overlay";
 import { useModalsStore } from "./store/modalsStore";
+import { audioManager } from "./utils/audioManager";
 
 const EDITOR_MODE = false;
-let finished = false;
 
 type Props = {
   map: MapType;
@@ -21,6 +20,7 @@ export const Game = ({ map }: Props) => {
   const socket = useSocketStore((store) => store.socket);
   const isYourTurn = useGameStore((store) => store.isYourTurn);
   const setIsYourTurn = useGameStore((store) => store.setIsYourTurn);
+  const setGameData = useGameStore((store) => store.setGameData);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameData = useGameStore((store) => store.gameData);
   const setDidYouWin = useGameStore((store) => store.setDidYouWin);
@@ -90,33 +90,9 @@ export const Game = ({ map }: Props) => {
 
     if (clicked) {
       handleMove(clicked);
+      audioManager.play("move");
       setIsPlayerOnTrack(isOnTrack(clicked, map));
       ///////////
-      const { checkpointIndex: newIndex, finished: isFinished } =
-        checkCheckpointProgress(
-          localPlayer.position,
-          clicked,
-          map.checkpoints,
-          map.finish,
-          localPlayer.checkpointIndex,
-        );
-
-      console.log({ newIndex });
-
-      setLocalPlayer((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          checkpointIndex: newIndex,
-        };
-      });
-
-      console.log(localPlayer.checkpointIndex);
-      finished = isFinished;
-
-      if (finished) {
-        console.log("🏁 Wyścig ukończony!");
-      }
     }
   };
 
@@ -157,7 +133,10 @@ export const Game = ({ map }: Props) => {
     const PlayerWonHandler = (data: PlayerWonType) => {
       const didYouWin = data.playerId === socket.id ? true : false;
 
+      audioManager.play(didYouWin ? "win" : "lose");
+
       setDidYouWin(didYouWin);
+      setGameData(undefined);
       setGameResultModal(true);
     };
 
@@ -167,7 +146,14 @@ export const Game = ({ map }: Props) => {
       socket.off("player-moved", handler);
       socket.off("player-won", PlayerWonHandler);
     };
-  }, [socket, otherPlayers, setIsYourTurn, setDidYouWin, setGameResultModal]);
+  }, [
+    socket,
+    otherPlayers,
+    setIsYourTurn,
+    setDidYouWin,
+    setGameResultModal,
+    setGameData,
+  ]);
 
   useEffect(() => {
     let animationFrameId = 0;

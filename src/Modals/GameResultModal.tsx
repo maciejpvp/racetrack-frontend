@@ -1,14 +1,24 @@
 import React from "react";
 import { useModalsStore } from "../store/modalsStore";
 import { useGameStore } from "../store/gameStore";
+import { useSocketStore } from "../store/socketStore";
 
 export const GameResultModal: React.FC = () => {
   const isOpen = useModalsStore((store) => store.gameResult);
   const setIsOpen = useModalsStore((store) => store.setGameResult);
+  const setIsInGame = useGameStore((store) => store.setIsInGame);
   const isWin = useGameStore((store) => store.didYouWin);
+  const socket = useSocketStore((store) => store.socket);
 
   const handleClose = () => {
     setIsOpen(false);
+    setIsInGame(false);
+
+    socket?.emit("leave-lobby");
+
+    setTimeout(() => {
+      document.getElementById("JoinQueue")?.click();
+    }, 100);
   };
 
   if (!isOpen) return null;
@@ -50,7 +60,7 @@ export const GameResultModal: React.FC = () => {
         <div className="flex justify-center">
           <button
             onClick={handleClose}
-            className={`px-6 py-3 bg-white border-4 ${isWin ? "border-green-600" : "border-red-600"}  rounded-lg text-xl tracking-wide hover:shadow-[4px_4px_0_#000] hover:-translate-x-[2px] hover:-translate-y-[2px] transition-all duration-150`}
+            className={`pointer-events-auto px-6 py-3 bg-white border-4 ${isWin ? "border-green-600" : "border-red-600"}  rounded-lg text-xl tracking-wide hover:shadow-[1px_1px_0_#000] hover:-translate-x-[2px] hover:-translate-y-[2px] transition-all duration-150`}
           >
             🔁 Play Again
           </button>

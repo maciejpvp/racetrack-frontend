@@ -3,8 +3,9 @@ import { useSocketStore } from "./store/socketStore";
 import { Game } from "./Game";
 import { useGameStore } from "./store/gameStore";
 import { MainMenu } from "./MainMenu";
-import type { GameDataType, MapType } from "./types";
+import type { GameDataType, GameTerminatedType, MapType } from "./types";
 import { useModalsStore } from "./store/modalsStore";
+import { backend } from "./constants";
 
 export const App = () => {
   const connect = useSocketStore((store) => store.connect);
@@ -12,6 +13,7 @@ export const App = () => {
   const isInGame = useGameStore((store) => store.isInGame);
   const setInGame = useGameStore((store) => store.setIsInGame);
   const setGameData = useGameStore((store) => store.setGameData);
+  const gameData = useGameStore((store) => store.gameData);
   const setIsYourTurn = useGameStore((store) => store.setIsYourTurn);
   const setIsOpenGameTerminate = useModalsStore(
     (store) => store.setGameTerminateModal,
@@ -21,7 +23,7 @@ export const App = () => {
 
   const fetchMap = useCallback(
     async (index: number) => {
-      const response = await fetch(`http://127.0.0.1:3000/maps/${index}`);
+      const response = await fetch(`http://${backend}:3000/maps/${index}`);
       if (!response.ok) return;
 
       const data = await response.json();
@@ -43,10 +45,13 @@ export const App = () => {
       setIsYourTurn(data.playerTurn === socket.id ? true : false);
     };
 
-    const handleGameTerminated = () => {
-      setInGame(false);
-      setMap(undefined);
-      setIsOpenGameTerminate(true);
+    const handleGameTerminated = (data: GameTerminatedType) => {
+      console.log(gameData);
+      if (gameData?.id === data.roomId) {
+        setInGame(false);
+        setMap(undefined);
+        setIsOpenGameTerminate(true);
+      }
     };
 
     socket.on("game-found", handleGameFound);
@@ -64,6 +69,7 @@ export const App = () => {
     setIsYourTurn,
     setInGame,
     setIsOpenGameTerminate,
+    gameData,
   ]);
 
   return <>{isInGame && map ? <Game map={map} /> : <MainMenu />}</>;

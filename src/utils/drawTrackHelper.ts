@@ -1,9 +1,9 @@
 import { GRID_SIZE } from "../constants";
-import type { MapType } from "../types";
+import type { MapType, Vec2 } from "../types";
 
-const drawTrackHelper = (
+export const drawTrackHelper = (
   ctx: CanvasRenderingContext2D,
-  points: { x: number; y: number }[],
+  points: Vec2[],
   color: string,
   gridSize: number,
   lineWidth: number,

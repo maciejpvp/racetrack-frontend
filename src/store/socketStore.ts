@@ -2,7 +2,14 @@ import type { Socket } from "socket.io-client";
 import ioClient from "socket.io-client";
 
 import { create } from "zustand";
-import type { GameDataType, PlayerType, PlayerWonType, Vec2 } from "../types";
+import type {
+  GameDataType,
+  GameTerminatedType,
+  PlayerType,
+  PlayerWonType,
+  Vec2,
+} from "../types";
+import { backend } from "../constants";
 
 export type PlayerMovedData = {
   newPos: Vec2;
@@ -15,7 +22,7 @@ export type PlayerMovedData = {
 type ServerToClientEvents = {
   "game-found": (gameInfo: GameDataType) => void;
   "player-moved": (data: PlayerMovedData) => void;
-  "game-terminated": () => void;
+  "game-terminated": (data: GameTerminatedType) => void;
   "player-won": (data: PlayerWonType) => void;
 };
 
@@ -28,6 +35,7 @@ type ClientToServerEvents = {
     ) => void,
   ) => void;
   "move-player": (data: { newPos: Vec2; roomId: string }) => void;
+  "leave-lobby": () => void;
 };
 
 type SocketType = Socket<ServerToClientEvents, ClientToServerEvents> | null;
@@ -45,7 +53,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const { socket: isSocketConnected } = get();
     if (isSocketConnected) return;
 
-    const socket = ioClient("http://localhost:3000", {});
+    const socket = ioClient(`http://${backend}:3000`, {});
 
     socket.on("connect", () => {
       console.log("🔌 Socket connected:", socket.id);
@@ -53,6 +61,10 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
     socket.on("disconnect", () => {
       console.log("❌ Socket disconnected");
+    });
+
+    socket.onAny((event, ...args) => {
+      console.log(`📥 Received event: "${event}" with data:`, ...args);
     });
 
     set({ socket });

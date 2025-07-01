@@ -29,6 +29,10 @@ export type PlayerWonType = {
   playerId: string;
 };
 
+export type GameTerminatedType = {
+  roomId: string;
+};
+
 export type MapType = {
   name: string;
   outerBoundary: Vec2[];

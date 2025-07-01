@@ -8,7 +8,7 @@ interface gameState {
   didYouWin: boolean;
   setIsInGame: (newValue: boolean) => void;
   gameData: GameDataType | undefined;
-  setGameData: (gameData: GameDataType) => void;
+  setGameData: (gameData: GameDataType | undefined) => void;
   setIsYourTurn: (newValue: boolean) => void;
   setDidYouWin: (newValue: boolean) => void;
 }

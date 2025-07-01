@@ -24,6 +24,7 @@ export const MainMenu = () => {
       </p>
 
       <button
+        id="JoinQueue"
         onClick={joinQueue}
         disabled={joinedQueue}
         className={`px-10 py-4 border-4 rounded-lg text-2xl tracking-wider transition-all duration-200

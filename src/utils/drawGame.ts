@@ -1,6 +1,7 @@
 import { GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
 import type { MapType, PlayerType, Vec2 } from "../types";
 import { updateCamera } from "./camera";
+import { drawFinish } from "./drawFinish";
 import { drawPlayer } from "./drawPlayer";
 import { drawTrack } from "./drawTrackHelper";
 
@@ -63,6 +64,8 @@ export const drawGame = (
       ctx.fill();
     });
   }
+
+  drawFinish(ctx, map.finish!);
 
   drawTrack(ctx, map);
 
