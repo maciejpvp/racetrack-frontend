@@ -5,7 +5,6 @@ import { useGameStore } from "./store/gameStore";
 import { MainMenu } from "./MainMenu";
 import type { GameDataType, GameTerminatedType, MapType } from "./types";
 import { useModalsStore } from "./store/modalsStore";
-import { backend } from "./constants";
 
 export const App = () => {
   const connect = useSocketStore((store) => store.connect);
@@ -23,7 +22,9 @@ export const App = () => {
 
   const fetchMap = useCallback(
     async (index: number) => {
-      const response = await fetch(`http://${backend}:3000/maps/${index}`);
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND}/api/maps/${index}`,
+      );
       if (!response.ok) return;
 
       const data = await response.json();

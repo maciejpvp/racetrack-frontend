@@ -9,7 +9,6 @@ import type {
   PlayerWonType,
   Vec2,
 } from "../types";
-import { backend } from "../constants";
 
 export type PlayerMovedData = {
   newPos: Vec2;
@@ -53,7 +52,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const { socket: isSocketConnected } = get();
     if (isSocketConnected) return;
 
-    const socket = ioClient(`http://${backend}:3000`, {});
+    const socket = ioClient(`${import.meta.env.VITE_BACKEND}`, {
+      path: "/api/socket",
+    });
 
     socket.on("connect", () => {
       console.log("🔌 Socket connected:", socket.id);

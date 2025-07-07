@@ -13,6 +13,5 @@ export const useModalsStore = create<modalsState>((set) => ({
   setGameTerminateModal: (newValue) => set({ gameTerminateModal: newValue }),
   setGameResult: (newValue) => {
     set({ gameResult: newValue });
-    console.log(newValue);
   },
 }));
