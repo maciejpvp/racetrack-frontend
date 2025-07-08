@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useGameStore } from "./store/gameStore";
+import { useSocketStore } from "./store/socketStore";
 
 type TimerProps = {
   size?: number;
@@ -6,12 +8,12 @@ type TimerProps = {
   onFinish?: () => void;
 };
 
-export const Timer = ({
-  size = 90,
-  color = "#358f01",
-  onFinish,
-}: TimerProps) => {
+export const Timer = ({ size = 90, onFinish }: TimerProps) => {
   const [degrees, setDegrees] = useState(0);
+  const socketId = useSocketStore((store) => store.socket?.id);
+  const color = useGameStore(
+    (store) => store.gameData?.players.find((p) => p.id === socketId)?.color,
+  );
 
   useEffect(() => {
     let startTime: number | null = null;
@@ -20,7 +22,7 @@ export const Timer = ({
       if (!startTime) startTime = timestamp;
 
       const elapsed = timestamp - startTime;
-      const progressDegrees = Math.min((elapsed / 2000) * 360, 360);
+      const progressDegrees = Math.min((elapsed / 1000) * 360, 360);
       setDegrees(progressDegrees);
 
       if (progressDegrees < 360) {

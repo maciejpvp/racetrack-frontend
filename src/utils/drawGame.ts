@@ -3,7 +3,7 @@ import type { MapType, PlayerType, Vec2 } from "../types";
 import { updateCamera } from "./camera";
 import { drawFinish } from "./drawFinish";
 import { drawPlayer } from "./drawPlayer";
-import { drawTrack } from "./drawTrackHelper";
+import { drawTrack } from "./drawTrack";
 
 export const drawGame = (
   ctx: CanvasRenderingContext2D,
@@ -21,11 +21,6 @@ export const drawGame = (
 
   ctx.save();
 
-  // const offsetX =
-  //   width / 2 - localPlayer.position.x * GRID_SIZE - GRID_SIZE / 2;
-  // const offsetY =
-  //   height / 2 - localPlayer.position.y * GRID_SIZE - GRID_SIZE / 2;
-  // ctx.translate(offsetX, offsetY);
   updateCamera(
     ctx,
     width,
@@ -35,21 +30,21 @@ export const drawGame = (
     map?.startPosition || { x: 0, y: 0 },
   );
 
-  ctx.strokeStyle = "#c4c4c4";
-  for (let x = 0; x <= GRID_COLS; x++) {
-    ctx.beginPath();
-    ctx.moveTo(x * GRID_SIZE, 0);
-    ctx.lineTo(x * GRID_SIZE, GRID_SIZE * GRID_ROWS);
-    ctx.stroke();
-  }
+  ctx.fillStyle = "green";
+  ctx.fillRect(0, 0, GRID_COLS * GRID_SIZE, GRID_ROWS * GRID_SIZE);
 
-  for (let y = 0; y <= GRID_ROWS; y++) {
-    ctx.beginPath();
-    ctx.moveTo(0, y * GRID_SIZE);
-    ctx.lineTo(GRID_SIZE * GRID_COLS, y * GRID_SIZE);
-    ctx.stroke();
-  }
+  ctx.lineWidth = 0.3;
+  drawTrack(ctx, map);
+  drawFinish(ctx, map.finish!);
 
+  drawPlayer(
+    ctx,
+    localPlayer.position,
+    localPlayer.velocity,
+    localPlayer.color,
+    GRID_SIZE,
+    localPlayer.path,
+  );
   if (isYourTurn) {
     ctx.fillStyle = localPlayer.color;
     available.forEach(({ x, y }) => {
@@ -64,19 +59,6 @@ export const drawGame = (
       ctx.fill();
     });
   }
-
-  drawFinish(ctx, map.finish!);
-
-  drawTrack(ctx, map);
-
-  drawPlayer(
-    ctx,
-    localPlayer.position,
-    localPlayer.velocity,
-    localPlayer.color,
-    GRID_SIZE,
-    localPlayer.path,
-  );
 
   otherPlayers.forEach((player) => {
     drawPlayer(

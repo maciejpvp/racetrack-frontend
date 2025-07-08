@@ -60,6 +60,16 @@
       /></label>
       <label>X <input type="number" id="overlayOffsetX" value="0" /></label>
       <label>Y <input type="number" id="overlayOffsetY" value="0" /></label>
+      <label
+        >Smoothness
+        <input
+          type="number"
+          id="smoothness"
+          min="0"
+          max="10"
+          step="1"
+          value="0"
+      /></label>
     </div>
 
     <canvas id="canvas"></canvas>
@@ -79,6 +89,7 @@
       const overlayScale = document.getElementById("overlayScale");
       const overlayOffsetX = document.getElementById("overlayOffsetX");
       const overlayOffsetY = document.getElementById("overlayOffsetY");
+      const smoothnessInput = document.getElementById("smoothness");
 
       let mode = "outer";
       let outerBoundary = [];
@@ -133,7 +144,6 @@
       document.getElementById("import").addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (event) => {
           try {
@@ -165,9 +175,12 @@
           reader.readAsDataURL(file);
         });
 
-      [overlayScale, overlayOffsetX, overlayOffsetY].forEach((input) => {
-        input.addEventListener("input", positionOverlay);
-      });
+      // Do not trigger saveState() for UI-only changes
+      [overlayScale, overlayOffsetX, overlayOffsetY, smoothnessInput].forEach(
+        (input) => {
+          input.addEventListener("input", positionOverlay);
+        },
+      );
 
       function positionOverlay() {
         const scale = parseFloat(overlayScale.value);
@@ -180,6 +193,18 @@
         overlayImage.style.top = `${offsetY}px`;
       }
 
+      function interpolatePoints(p1, p2, steps) {
+        const points = [];
+        for (let i = 1; i < steps; i++) {
+          const t = i / steps;
+          points.push({
+            x: Math.round(p1.x + (p2.x - p1.x) * t),
+            y: Math.round(p1.y + (p2.y - p1.y) * t),
+          });
+        }
+        return points;
+      }
+
       let lineStart = null;
 
       canvas.addEventListener("click", (e) => {
@@ -187,12 +212,22 @@
         const x = Math.floor((e.clientX - rect.left) / GRID_SIZE);
         const y = Math.floor((e.clientY - rect.top) / GRID_SIZE);
 
-        saveState();
+        const smoothSteps = parseInt(smoothnessInput.value);
 
-        if (mode === "outer") {
-          outerBoundary.push({ x, y });
-        } else if (mode === "inner") {
-          innerBoundary.push({ x, y });
+        if (
+          ["outer", "inner", "start", "checkpoint", "finish"].includes(mode)
+        ) {
+          saveState();
+        }
+
+        if (mode === "outer" || mode === "inner") {
+          const path = mode === "outer" ? outerBoundary : innerBoundary;
+          const last = path[path.length - 1];
+          if (last && smoothSteps > 0) {
+            const between = interpolatePoints(last, { x, y }, smoothSteps);
+            path.push(...between);
+          }
+          path.push({ x, y });
         } else if (mode === "start") {
           startPosition = { x, y };
         } else if (mode === "checkpoint" || mode === "finish") {
