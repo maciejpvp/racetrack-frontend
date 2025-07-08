@@ -1,4 +1,4 @@
-import { GRID_SIZE } from "../constants";
+import { colors, GRID_SIZE } from "../constants";
 import type { MapType, Vec2 } from "../types";
 import { drawGrid } from "./drawGrid";
 
@@ -76,11 +76,11 @@ export const drawTrack = (ctx: CanvasRenderingContext2D, map: MapType) => {
     map.outerBoundary,
     map.innerBoundary,
     GRID_SIZE,
-    "gray",
+    colors.track.tourLine,
   );
 
   drawGrid(ctx);
 
-  drawTrackHelper(ctx, map.innerBoundary, "black", GRID_SIZE, 5);
-  drawTrackHelper(ctx, map.outerBoundary, "black", GRID_SIZE, 5);
+  drawTrackHelper(ctx, map.innerBoundary, colors.track.outline, GRID_SIZE, 5);
+  drawTrackHelper(ctx, map.outerBoundary, colors.track.outline, GRID_SIZE, 5);
 };

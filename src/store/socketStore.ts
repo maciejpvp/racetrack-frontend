@@ -7,7 +7,9 @@ import type {
   GameTerminatedType,
   PlayerType,
   PlayerWonType,
+  SkippedType,
   Vec2,
+  WarningType,
 } from "../types";
 
 export type PlayerMovedData = {
@@ -23,6 +25,9 @@ type ServerToClientEvents = {
   "player-moved": (data: PlayerMovedData) => void;
   "game-terminated": (data: GameTerminatedType) => void;
   "player-won": (data: PlayerWonType) => void;
+  warning: (data: WarningType) => void;
+  skipped: (data: SkippedType) => void;
+  "punishment-ended": () => void;
 };
 
 type ClientToServerEvents = {
@@ -64,9 +69,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       console.log("❌ Socket disconnected");
     });
 
-    socket.onAny((event, ...args) => {
-      console.log(`📥 Received event: "${event}" with data:`, ...args);
-    });
+    // socket.onAny((event, ...args) => {
+    //   console.log(`📥 Received event: "${event}" with data:`, ...args);
+    // });
 
     set({ socket });
   },

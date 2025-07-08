@@ -10,7 +10,7 @@ export type Line = {
 export type PlayerType = {
   id: string;
   roomId?: string;
-  color: "red" | "blue" | "green";
+  color: "red" | "blue";
   username: string;
   position: Vec2;
   velocity: Vec2;
@@ -31,6 +31,16 @@ export type PlayerWonType = {
 
 export type GameTerminatedType = {
   roomId: string;
+  playerId: string;
+  reason: "leave" | "kick";
+};
+export type WarningType = {
+  punishment: number;
+};
+
+export type SkippedType = {
+  reason: "punishment";
+  remaining: number;
 };
 
 export type MapType = {

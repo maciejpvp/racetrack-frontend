@@ -2,7 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { getAvailableMoves } from "./utils/getAvailableMoves";
 import { drawGame } from "./utils/drawGame";
 import { GRID_SIZE } from "./constants";
-import type { MapType, PlayerType, PlayerWonType, Vec2 } from "./types";
+import type {
+  MapType,
+  PlayerType,
+  PlayerWonType,
+  Vec2,
+  WarningType,
+} from "./types";
 import { useSocketStore, type PlayerMovedData } from "./store/socketStore";
 import { useGameStore } from "./store/gameStore";
 import { isOnTrack } from "./utils/isOnTrack";
@@ -23,6 +29,7 @@ export const Game = ({ map }: Props) => {
   const setGameData = useGameStore((store) => store.setGameData);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameData = useGameStore((store) => store.gameData);
+  const setPunishment = useGameStore((store) => store.setPunishment);
   const setDidYouWin = useGameStore((store) => store.setDidYouWin);
   const setGameResultModal = useModalsStore((store) => store.setGameResult);
   const [isPlayerOnTrack, setIsPlayerOnTrack] = useState<boolean>(true);
@@ -100,7 +107,6 @@ export const Game = ({ map }: Props) => {
     if (!socket) return;
 
     const handler = (data: PlayerMovedData) => {
-      console.log(data);
       setIsYourTurn(data.playerTurn === socket.id ? true : false);
       setLeaderboard(data.leaderboard);
 
@@ -193,6 +199,16 @@ export const Game = ({ map }: Props) => {
     animationFrameId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animationFrameId);
   }, [localPlayer, otherPlayers, isYourTurn, map]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (data: WarningType) => {};
+
+    socket.on("warning", handler);
+    return () => {
+      socket.off("warning", handler);
+    };
+  }, [socket]);
 
   return (
     <div className="bg-zinc-300">

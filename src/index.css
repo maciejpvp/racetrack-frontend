@@ -6,6 +6,9 @@
 body {
   font-family: "Montserrat", sans-serif;
 }
+canvas {
+  background-color: #3b6e3b;
+}
 .font-handwriting {
   font-family: "Patrick Hand", cursive;
 }

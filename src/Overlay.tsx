@@ -1,3 +1,5 @@
+import { OffTrackWarning } from "./Infos/OffTrackWarning";
+import { Punishment } from "./Infos/Punishment";
 import { GameResultModal } from "./Modals/GameResultModal";
 import { useGameStore } from "./store/gameStore";
 import { useSocketStore } from "./store/socketStore";
@@ -32,15 +34,12 @@ export const Overlay = ({ isPlayerOnTrack, leaderboard }: Props) => {
     <div className="font-handwriting    h-dvh w-dvw absolute pointer-events-none">
       <GameResultModal />
 
-      {!isPlayerOnTrack && (
-        <div className="absolute bg-zinc-200 p-2 top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <p className=" text-4xl">Get Back On Track!</p>
-        </div>
-      )}
+      <OffTrackWarning isVisible={!isPlayerOnTrack} />
+      <Punishment turns={0} />
       <p className="text-zinc-800 absolute bottom-10 right-10 text-5xl">
         {ordinalMap[playerIndex]}
       </p>
-      {isYourTurn && <Timer onFinish={() => console.log("Timer finished!")} />}
+      {isYourTurn && <Timer onFinish={() => {}} />}
     </div>
   );
 };

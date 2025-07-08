@@ -17,6 +17,9 @@ export const App = () => {
   const setIsOpenGameTerminate = useModalsStore(
     (store) => store.setGameTerminateModal,
   );
+  const setGameTerminateData = useModalsStore(
+    (store) => store.setGameTerminateData,
+  );
 
   const [map, setMap] = useState<MapType>();
 
@@ -40,15 +43,14 @@ export const App = () => {
     if (!socket) return;
 
     const handleGameFound = (data: GameDataType) => {
-      console.log({ data });
       fetchMap(data.mapIndex);
       setGameData(data);
       setIsYourTurn(data.playerTurn === socket.id ? true : false);
     };
 
     const handleGameTerminated = (data: GameTerminatedType) => {
-      console.log(gameData);
       if (gameData?.id === data.roomId) {
+        setGameTerminateData(data);
         setInGame(false);
         setMap(undefined);
         setIsOpenGameTerminate(true);
@@ -71,6 +73,7 @@ export const App = () => {
     setInGame,
     setIsOpenGameTerminate,
     gameData,
+    setGameTerminateData,
   ]);
 
   return <>{isInGame && map ? <Game map={map} /> : <MainMenu />}</>;

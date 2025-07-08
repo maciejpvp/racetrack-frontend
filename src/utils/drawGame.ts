@@ -1,4 +1,4 @@
-import { GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
+import { colors, GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
 import type { MapType, PlayerType, Vec2 } from "../types";
 import { updateCamera } from "./camera";
 import { drawFinish } from "./drawFinish";
@@ -30,7 +30,7 @@ export const drawGame = (
     map?.startPosition || { x: 0, y: 0 },
   );
 
-  ctx.fillStyle = "green";
+  ctx.fillStyle = colors.environment.grass;
   ctx.fillRect(0, 0, GRID_COLS * GRID_SIZE, GRID_ROWS * GRID_SIZE);
 
   ctx.lineWidth = 0.3;
