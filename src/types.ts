@@ -18,6 +18,12 @@ export type PlayerType = {
   checkpointIndex: number;
 };
 
+export type LeaderboardType = {
+  socketId: string;
+  username: string;
+  movesUsed: number;
+}[];
+
 export type GameDataType = {
   id: string;
   players: PlayerType[];
@@ -25,8 +31,8 @@ export type GameDataType = {
   mapIndex: number;
 };
 
-export type PlayerWonType = {
-  playerId: string;
+export type GameFinishedType = {
+  leaderboard: LeaderboardType;
 };
 
 export type GameTerminatedType = {

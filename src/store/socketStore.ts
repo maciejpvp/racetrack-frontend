@@ -4,9 +4,9 @@ import ioClient from "socket.io-client";
 import { create } from "zustand";
 import type {
   GameDataType,
+  GameFinishedType,
   GameTerminatedType,
   PlayerType,
-  PlayerWonType,
   SkippedType,
   Vec2,
   WarningType,
@@ -24,7 +24,7 @@ type ServerToClientEvents = {
   "game-found": (gameInfo: GameDataType) => void;
   "player-moved": (data: PlayerMovedData) => void;
   "game-terminated": (data: GameTerminatedType) => void;
-  "player-won": (data: PlayerWonType) => void;
+  "game-finished": (data: GameFinishedType) => void;
   warning: (data: WarningType) => void;
   skipped: (data: SkippedType) => void;
   "punishment-ended": () => void;
@@ -69,9 +69,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       console.log("❌ Socket disconnected");
     });
 
-    // socket.onAny((event, ...args) => {
-    //   console.log(`📥 Received event: "${event}" with data:`, ...args);
-    // });
+    socket.onAny((event, ...args) => {
+      console.log(`📥 Received event: "${event}" with data:`, ...args);
+    });
 
     set({ socket });
   },

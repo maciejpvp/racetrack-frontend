@@ -13,6 +13,7 @@ export const App = () => {
   const setInGame = useGameStore((store) => store.setIsInGame);
   const setGameData = useGameStore((store) => store.setGameData);
   const gameData = useGameStore((store) => store.gameData);
+  const restartData = useGameStore((store) => store.restartData);
   const setIsYourTurn = useGameStore((store) => store.setIsYourTurn);
   const setIsOpenGameTerminate = useModalsStore(
     (store) => store.setGameTerminateModal,
@@ -43,6 +44,8 @@ export const App = () => {
     if (!socket) return;
 
     const handleGameFound = (data: GameDataType) => {
+      restartData();
+
       fetchMap(data.mapIndex);
       setGameData(data);
       setIsYourTurn(data.playerTurn === socket.id ? true : false);

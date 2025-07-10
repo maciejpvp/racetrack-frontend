@@ -3,9 +3,10 @@ import { getAvailableMoves } from "./utils/getAvailableMoves";
 import { drawGame } from "./utils/drawGame";
 import { GRID_SIZE } from "./constants";
 import type {
+  GameFinishedType,
   MapType,
   PlayerType,
-  PlayerWonType,
+  SkippedType,
   Vec2,
   WarningType,
 } from "./types";
@@ -15,6 +16,7 @@ import { isOnTrack } from "./utils/isOnTrack";
 import { Overlay } from "./Overlay";
 import { useModalsStore } from "./store/modalsStore";
 import { audioManager } from "./utils/audioManager";
+import { useRecordStore } from "./store/recordStore";
 
 const EDITOR_MODE = false;
 
@@ -27,11 +29,13 @@ export const Game = ({ map }: Props) => {
   const isYourTurn = useGameStore((store) => store.isYourTurn);
   const setIsYourTurn = useGameStore((store) => store.setIsYourTurn);
   const setGameData = useGameStore((store) => store.setGameData);
+  const setFinishLeaderboard = useGameStore((store) => store.setLeaderboard);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameData = useGameStore((store) => store.gameData);
   const setPunishment = useGameStore((store) => store.setPunishment);
   const setDidYouWin = useGameStore((store) => store.setDidYouWin);
   const setGameResultModal = useModalsStore((store) => store.setGameResult);
+  const addToRecordPath = useRecordStore((store) => store.addToPath);
   const [isPlayerOnTrack, setIsPlayerOnTrack] = useState<boolean>(true);
 
   const players = gameData?.players || [];
@@ -97,6 +101,8 @@ export const Game = ({ map }: Props) => {
 
     if (clicked) {
       handleMove(clicked);
+      addToRecordPath(clicked);
+
       audioManager.play("move");
       setIsPlayerOnTrack(isOnTrack(clicked, map));
       ///////////
@@ -136,21 +142,20 @@ export const Game = ({ map }: Props) => {
         );
       }
     };
-    const PlayerWonHandler = (data: PlayerWonType) => {
-      const didYouWin = data.playerId === socket.id ? true : false;
+    const GameFinishedHandler = (data: GameFinishedType) => {
+      audioManager.play("win");
 
-      audioManager.play(didYouWin ? "win" : "lose");
+      setFinishLeaderboard(data.leaderboard);
 
-      setDidYouWin(didYouWin);
       setGameData(undefined);
       setGameResultModal(true);
     };
 
     socket.on("player-moved", handler);
-    socket.on("player-won", PlayerWonHandler);
+    socket.on("game-finished", GameFinishedHandler);
     return () => {
       socket.off("player-moved", handler);
-      socket.off("player-won", PlayerWonHandler);
+      socket.off("game-finished", GameFinishedHandler);
     };
   }, [
     socket,
@@ -159,6 +164,7 @@ export const Game = ({ map }: Props) => {
     setDidYouWin,
     setGameResultModal,
     setGameData,
+    setFinishLeaderboard,
   ]);
 
   useEffect(() => {
@@ -202,13 +208,39 @@ export const Game = ({ map }: Props) => {
 
   useEffect(() => {
     if (!socket) return;
-    const handler = (data: WarningType) => {};
+    const handler = (data: WarningType) => {
+      setPunishment(data.punishment);
+    };
 
     socket.on("warning", handler);
     return () => {
       socket.off("warning", handler);
     };
-  }, [socket]);
+  }, [socket, setPunishment]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = (data: SkippedType) => {
+      setPunishment(data.remaining);
+    };
+
+    socket.on("skipped", handler);
+    return () => {
+      socket.off("skipped", handler);
+    };
+  }, [socket, setPunishment]);
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      setPunishment(0);
+    };
+
+    socket.on("punishment-ended", handler);
+    return () => {
+      socket.off("punishment-ended", handler);
+    };
+  }, [socket, setPunishment]);
 
   return (
     <div className="bg-zinc-300">
