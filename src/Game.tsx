@@ -99,14 +99,20 @@ export const Game = ({ map }: Props) => {
       clicked = { x: tileX, y: tileY };
     }
 
-    if (clicked) {
-      handleMove(clicked);
-      addToRecordPath(clicked);
+    if (!clicked) return;
 
-      audioManager.play("move");
-      setIsPlayerOnTrack(isOnTrack(clicked, map));
-      ///////////
-    }
+    //Check Other Players Collisons
+    const doesCollide = otherPlayers.some(
+      (p) => p.position.x === clicked.x && p.position.y === clicked.y,
+    );
+
+    if (doesCollide) return;
+
+    handleMove(clicked);
+    addToRecordPath(clicked);
+
+    audioManager.play("move");
+    setIsPlayerOnTrack(isOnTrack(clicked, map));
   };
 
   useEffect(() => {

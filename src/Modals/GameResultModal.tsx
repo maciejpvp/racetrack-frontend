@@ -10,6 +10,8 @@ export const GameResultModal: React.FC = () => {
   const leaderboard = useGameStore((store) => store.leaderboard);
   const socket = useSocketStore((store) => store.socket);
 
+  console.log(leaderboard);
+
   const handleClose = () => {
     setIsOpen(false);
     setIsInGame(false);
@@ -39,7 +41,19 @@ export const GameResultModal: React.FC = () => {
         <ul className="space-y-2 text-lg text-center">
           {leaderboard.map((player, index) => (
             <li key={index} className="flex justify-between px-4">
-              <span>{player.username}</span>
+              <div className="flex flex-row gap-1">
+                <span>{index + 1}. </span>
+                {player.socketId === socket?.id ? (
+                  <div className="flex flex-row gap-2">
+                    <span>{player.username}</span>{" "}
+                    <span className="bg-gradient-to-r from-yellow-600  to-yellow-800 bg-clip-text text-transparent font-semibold">
+                      (You)
+                    </span>
+                  </div>
+                ) : (
+                  <span>{player.username}</span>
+                )}
+              </div>
               <span>{player.movesUsed} moves</span>
             </li>
           ))}

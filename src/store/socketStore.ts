@@ -32,6 +32,7 @@ type ServerToClientEvents = {
 
 type ClientToServerEvents = {
   "join-queue": (
+    data: { username: string },
     callback: (
       response:
         | { success: true; message: string }

@@ -48,6 +48,10 @@ export const drawGame = (
   if (isYourTurn) {
     ctx.fillStyle = localPlayer.color;
     available.forEach(({ x, y }) => {
+      if (otherPlayers.some((p) => p.position.x === x && p.position.y === y)) {
+        return;
+      }
+
       ctx.beginPath();
       ctx.arc(
         x * GRID_SIZE + GRID_SIZE / 2,

@@ -2,20 +2,28 @@ import { useState } from "react";
 import { useSocketStore } from "./store/socketStore";
 import { GameTerminatedModal } from "./Modals/GameTerminatedModal";
 import { motion } from "framer-motion";
+import { Username } from "./MainMenu/Username";
+
+const generateUsername = () => {
+  const randomPart = Math.random().toString(36).slice(2, 8);
+  return `guest-${randomPart}`;
+};
 
 export const MainMenu = () => {
   const socket = useSocketStore((store) => store.socket);
   const [joinedQueue, setJoinedQueue] = useState(false);
+  const [username, setUsername] = useState<string>(() => generateUsername());
 
   const joinQueue = () => {
     if (!socket) return;
-    socket.emit("join-queue", () => {
+    socket.emit("join-queue", { username }, () => {
       setJoinedQueue(true);
     });
   };
 
   return (
     <div className="bg-yellow-100 h-dvh w-full flex items-center justify-center text-yellow-900 font-handwritten px-4">
+      <Username value={username} setValue={setUsername} />
       <motion.div
         initial={{ rotate: -2, scale: 0.95, opacity: 0 }}
         animate={{ rotate: -0.4, scale: 1, opacity: 1 }}
