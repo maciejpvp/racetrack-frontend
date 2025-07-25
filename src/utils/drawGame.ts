@@ -75,5 +75,8 @@ export const drawGame = (
     );
   });
 
+  // Show Checkpoints for Debug Purposes, do NOT uncomment for prod, should be invisible for users
+  // drawCheckpoints(ctx, map.checkpoints);
+
   ctx.restore();
 };
