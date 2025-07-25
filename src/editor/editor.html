@@ -20,12 +20,36 @@
         position: absolute;
         top: 10px;
         left: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 15px;
+        border-radius: 10px;
         z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 280px;
       }
       button,
-      input {
-        margin-right: 5px;
-        padding: 5px 10px;
+      input[type="text"],
+      input[type="number"],
+      input[type="file"],
+      input[type="range"] {
+        width: 100%;
+        padding: 6px 8px;
+        font-size: 14px;
+        background: #333;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background: #444;
+        cursor: pointer;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        font-size: 13px;
       }
       #overlayImage {
         position: absolute;
@@ -44,22 +68,24 @@
       <button id="modeStart">Set Start</button>
       <button id="modeCheckpoint">Add Checkpoint</button>
       <button id="modeFinish">Set Finish</button>
-      <input id="mapName" type="text" placeholder="Map Name" />
-      <button id="export">Export JSON</button>
-      <input type="file" id="import" />
-      <input type="file" id="overlayUpload" accept="image/*" />
+      <button
+        id="modeArrow"
+        title="Click to place arrow. Click again to rotate by 45°"
+      >
+        Add Direction Arrow
+      </button>
+
       <label
-        >Scale
-        <input
-          type="range"
-          id="overlayScale"
-          min="0.1"
-          max="3"
-          step="0.1"
-          value="1"
+        >Map Name <input id="mapName" type="text" placeholder="Map Name"
       /></label>
-      <label>X <input type="number" id="overlayOffsetX" value="0" /></label>
-      <label>Y <input type="number" id="overlayOffsetY" value="0" /></label>
+      <label
+        >Default Velocity X
+        <input type="number" id="defaultVelocityX" step="0.1" value="1"
+      /></label>
+      <label
+        >Default Velocity Y
+        <input type="number" id="defaultVelocityY" step="0.1" value="0"
+      /></label>
       <label
         >Smoothness
         <input
@@ -69,6 +95,27 @@
           max="10"
           step="1"
           value="0"
+      /></label>
+
+      <button id="export">Export JSON</button>
+      <input type="file" id="import" />
+      <input type="file" id="overlayUpload" accept="image/*" />
+
+      <label
+        >Overlay Scale
+        <input
+          type="range"
+          id="overlayScale"
+          min="0.1"
+          max="3"
+          step="0.1"
+          value="1"
+      /></label>
+      <label
+        >Overlay X Offset <input type="number" id="overlayOffsetX" value="0"
+      /></label>
+      <label
+        >Overlay Y Offset <input type="number" id="overlayOffsetY" value="0"
       /></label>
     </div>
 
@@ -90,6 +137,8 @@
       const overlayOffsetX = document.getElementById("overlayOffsetX");
       const overlayOffsetY = document.getElementById("overlayOffsetY");
       const smoothnessInput = document.getElementById("smoothness");
+      const defaultVelocityXInput = document.getElementById("defaultVelocityX");
+      const defaultVelocityYInput = document.getElementById("defaultVelocityY");
 
       let mode = "outer";
       let outerBoundary = [];
@@ -97,8 +146,24 @@
       let startPosition = null;
       let checkpoints = [];
       let finish = null;
+      let directionArrows = [];
+      let selectedArrowIndex = null;
+
+      let defaultVelocity = {
+        x: parseFloat(defaultVelocityXInput.value),
+        y: parseFloat(defaultVelocityYInput.value),
+      };
 
       const history = [];
+
+      defaultVelocityXInput.addEventListener("input", () => {
+        defaultVelocity.x = parseFloat(defaultVelocityXInput.value);
+        draw();
+      });
+      defaultVelocityYInput.addEventListener("input", () => {
+        defaultVelocity.y = parseFloat(defaultVelocityYInput.value);
+        draw();
+      });
 
       function saveState() {
         history.push({
@@ -110,6 +175,8 @@
             b: { ...c.b },
           })),
           finish: finish ? { a: { ...finish.a }, b: { ...finish.b } } : null,
+          directionArrows: directionArrows.map((a) => ({ ...a })),
+          defaultVelocity: { ...defaultVelocity },
         });
       }
 
@@ -119,6 +186,7 @@
       document.getElementById("modeCheckpoint").onclick = () =>
         (mode = "checkpoint");
       document.getElementById("modeFinish").onclick = () => (mode = "finish");
+      document.getElementById("modeArrow").onclick = () => (mode = "arrow");
 
       document.getElementById("export").onclick = () => {
         const name = document.getElementById("mapName").value || "Unnamed Map";
@@ -130,6 +198,8 @@
             startPosition,
             checkpoints,
             finish,
+            defaultVelocity,
+            directionArrows,
           },
           null,
           2,
@@ -153,6 +223,10 @@
             startPosition = map.startPosition || null;
             checkpoints = map.checkpoints || [];
             finish = map.finish || null;
+            directionArrows = map.directionArrows || [];
+            defaultVelocity = map.defaultVelocity ?? { x: 1, y: 0 };
+            defaultVelocityXInput.value = defaultVelocity.x;
+            defaultVelocityYInput.value = defaultVelocity.y;
             document.getElementById("mapName").value = map.name || "";
             draw();
           } catch (err) {
@@ -175,7 +249,6 @@
           reader.readAsDataURL(file);
         });
 
-      // Do not trigger saveState() for UI-only changes
       [overlayScale, overlayOffsetX, overlayOffsetY, smoothnessInput].forEach(
         (input) => {
           input.addEventListener("input", positionOverlay);
@@ -186,7 +259,6 @@
         const scale = parseFloat(overlayScale.value);
         const offsetX = parseInt(overlayOffsetX.value);
         const offsetY = parseInt(overlayOffsetY.value);
-
         overlayImage.style.width = `${canvas.width * scale}px`;
         overlayImage.style.height = `${canvas.height * scale}px`;
         overlayImage.style.left = `${offsetX}px`;
@@ -211,11 +283,12 @@
         const rect = canvas.getBoundingClientRect();
         const x = Math.floor((e.clientX - rect.left) / GRID_SIZE);
         const y = Math.floor((e.clientY - rect.top) / GRID_SIZE);
-
         const smoothSteps = parseInt(smoothnessInput.value);
 
         if (
-          ["outer", "inner", "start", "checkpoint", "finish"].includes(mode)
+          ["outer", "inner", "start", "checkpoint", "finish", "arrow"].includes(
+            mode,
+          )
         ) {
           saveState();
         }
@@ -239,6 +312,13 @@
             else finish = line;
             lineStart = null;
           }
+        } else if (mode === "arrow") {
+          const existing = directionArrows.find((a) => a.x === x && a.y === y);
+          if (existing) {
+            existing.angle = (existing.angle + 45) % 360;
+          } else {
+            directionArrows.push({ x, y, angle: 0 });
+          }
         }
 
         draw();
@@ -253,6 +333,10 @@
             startPosition = prev.startPosition;
             checkpoints = prev.checkpoints;
             finish = prev.finish;
+            directionArrows = prev.directionArrows;
+            defaultVelocity = prev.defaultVelocity;
+            defaultVelocityXInput.value = defaultVelocity.x;
+            defaultVelocityYInput.value = defaultVelocity.y;
             draw();
           }
         }
@@ -263,9 +347,44 @@
         drawGrid();
         drawPath(outerBoundary, "red");
         drawPath(innerBoundary, "blue");
-        if (startPosition) drawMarker(startPosition, "lime", 6);
+
+        if (startPosition) {
+          drawMarker(startPosition, "lime", 6, "S");
+
+          const startX = startPosition.x * GRID_SIZE + GRID_SIZE / 2;
+          const startY = startPosition.y * GRID_SIZE + GRID_SIZE / 2;
+          const arrowScale = 20;
+          const endX = startX + defaultVelocity.x * arrowScale;
+          const endY = startY + defaultVelocity.y * arrowScale;
+
+          ctx.strokeStyle = "cyan";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(startX, startY);
+          ctx.lineTo(endX, endY);
+          ctx.stroke();
+
+          const angle = Math.atan2(endY - startY, endX - startX);
+          const headlen = 8;
+          ctx.beginPath();
+          ctx.moveTo(endX, endY);
+          ctx.lineTo(
+            endX - headlen * Math.cos(angle - Math.PI / 6),
+            endY - headlen * Math.sin(angle - Math.PI / 6),
+          );
+          ctx.lineTo(
+            endX - headlen * Math.cos(angle + Math.PI / 6),
+            endY - headlen * Math.sin(angle + Math.PI / 6),
+          );
+          ctx.lineTo(endX, endY);
+          ctx.fillStyle = "cyan";
+          ctx.fill();
+        }
+
         checkpoints.forEach((line, i) => drawLine(line, "yellow", i + 1));
         if (finish) drawLine(finish, "white", "F");
+
+        directionArrows.forEach(drawDirectionArrow);
       }
 
       function drawGrid() {
@@ -288,7 +407,6 @@
         ctx.strokeStyle = color;
         ctx.fillStyle = color;
         ctx.lineWidth = 2;
-
         path.forEach(({ x, y }, i) => {
           ctx.beginPath();
           ctx.arc(
@@ -299,7 +417,6 @@
             2 * Math.PI,
           );
           ctx.fill();
-
           if (i > 0) {
             const prev = path[i - 1];
             ctx.beginPath();
@@ -363,6 +480,37 @@
           ctx.textBaseline = "middle";
           ctx.fillText(label, midX, midY);
         }
+      }
+
+      function drawDirectionArrow({ x, y, angle }) {
+        const centerX = x * GRID_SIZE + GRID_SIZE / 2;
+        const centerY = y * GRID_SIZE + GRID_SIZE / 2;
+        const length = 20;
+        const rad = (angle * Math.PI) / 180;
+        const endX = centerX + Math.cos(rad) * length;
+        const endY = centerY + Math.sin(rad) * length;
+
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+
+        const headlen = 6;
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(
+          endX - headlen * Math.cos(rad - Math.PI / 6),
+          endY - headlen * Math.sin(rad - Math.PI / 6),
+        );
+        ctx.lineTo(
+          endX - headlen * Math.cos(rad + Math.PI / 6),
+          endY - headlen * Math.sin(rad + Math.PI / 6),
+        );
+        ctx.lineTo(endX, endY);
+        ctx.fillStyle = "orange";
+        ctx.fill();
       }
 
       draw();
