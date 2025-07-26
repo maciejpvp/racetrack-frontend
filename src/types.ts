@@ -49,6 +49,12 @@ export type SkippedType = {
   remaining: number;
 };
 
+export type directionArrow = {
+  x: number;
+  y: number;
+  angle: number;
+};
+
 export type MapType = {
   name: string;
   outerBoundary: Vec2[];
@@ -56,4 +62,5 @@ export type MapType = {
   startPosition: Vec2 | null;
   checkpoints: Line[];
   finish: Line | null;
+  directionArrows: directionArrow[];
 };

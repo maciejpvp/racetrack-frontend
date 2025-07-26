@@ -1,6 +1,7 @@
 import { colors, GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
 import type { MapType, PlayerType, Vec2 } from "../types";
 import { updateCamera } from "./camera";
+import { drawArrows } from "./drawArrows";
 import { drawFinish } from "./drawFinish";
 import { drawPlayer } from "./drawPlayer";
 import { drawTrack } from "./drawTrack";
@@ -74,6 +75,8 @@ export const drawGame = (
       player.path ?? [player.position],
     );
   });
+
+  drawArrows(ctx, map.directionArrows);
 
   // Show Checkpoints for Debug Purposes, do NOT uncomment for prod, should be invisible for users
   // drawCheckpoints(ctx, map.checkpoints);
