@@ -4,7 +4,7 @@ import { GameResultModal } from "./Modals/GameResultModal";
 import { useGameStore } from "./store/gameStore";
 import { useRecordStore } from "./store/recordStore";
 import { useSocketStore } from "./store/socketStore";
-import { Timer } from "./Timer";
+import { Timer } from "./Infos/Timer";
 import type { PlayerType } from "./types";
 
 type Props = {

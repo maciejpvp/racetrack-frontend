@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useGameStore } from "./store/gameStore";
-import { useSocketStore } from "./store/socketStore";
+import { useGameStore } from "../store/gameStore";
+import { useSocketStore } from "../store/socketStore";
 
 type TimerProps = {
   size?: number;

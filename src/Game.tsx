@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { getAvailableMoves } from "./utils/getAvailableMoves";
-import { drawGame } from "./utils/drawGame";
+import { drawGame } from "./draw/drawGame";
 import { GRID_SIZE } from "./constants";
 import type {
   GameFinishedType,

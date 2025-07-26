@@ -1,6 +1,6 @@
 import { colors, GRID_COLS, GRID_ROWS, GRID_SIZE } from "../constants";
 import type { MapType, PlayerType, Vec2 } from "../types";
-import { updateCamera } from "./camera";
+import { updateCamera } from "../utils/camera";
 import { drawArrows } from "./drawArrows";
 import { drawFinish } from "./drawFinish";
 import { drawPlayer } from "./drawPlayer";
