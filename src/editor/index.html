@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Map Editor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="controls">
+      <h2>Map Editor</h2>
+
+      <section class="grid-section" id="drawingModes">
+        <button id="modeOuter" title="Draw Outer">Outer</button>
+        <button id="modeInner" title="Draw Inner">Inner</button>
+        <button id="modeStart" title="Set Start">Start</button>
+        <button id="modeCheckpoint" title="Add Checkpoint">Checkpoint</button>
+        <button id="modeFinish" title="Set Finish">Finish</button>
+        <button id="modeArrow" title="Add Direction Arrow">Arrow</button>
+      </section>
+
+      <section class="grid-section" id="mapSettings">
+        <label>
+          Map Name
+          <input id="mapName" type="text" placeholder="Map Name" />
+        </label>
+        <label>
+          Velocity X
+          <input type="number" id="defaultVelocityX" step="0.1" value="1" />
+        </label>
+        <label>
+          Velocity Y
+          <input type="number" id="defaultVelocityY" step="0.1" value="0" />
+        </label>
+        <label>
+          Smoothness
+          <input
+            type="number"
+            id="smoothness"
+            min="0"
+            max="10"
+            step="1"
+            value="0"
+          />
+        </label>
+      </section>
+
+      <section class="grid-section" id="fileControls">
+        <button id="export" title="Export JSON">Export</button>
+        <input type="file" id="import" title="Import JSON" />
+      </section>
+
+      <section class="grid-section" id="overlayControls">
+        <input
+          type="file"
+          id="overlayUpload"
+          accept="image/*"
+          title="Upload Overlay Image"
+        />
+        <label>
+          Scale
+          <input
+            type="range"
+            id="overlayScale"
+            min="0.1"
+            max="3"
+            step="0.1"
+            value="1"
+          />
+        </label>
+        <label>
+          X Offset
+          <input type="number" id="overlayOffsetX" value="0" />
+        </label>
+        <label>
+          Y Offset
+          <input type="number" id="overlayOffsetY" value="0" />
+        </label>
+      </section>
+    </div>
+
+    <canvas id="canvas"></canvas>
+    <img id="overlayImage" />
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
