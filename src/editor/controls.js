@@ -2,16 +2,7 @@ import { setMode, exportMap, loadMapFromFile, state } from "./state.js";
 import { draw } from "./draw.js";
 
 export function setupControlButtons() {
-  const modes = [
-    "Outer",
-    "Inner",
-    "Start",
-    "Checkpoint",
-    "Finish",
-    "Arrow",
-    "DeleteArrow",
-    "DeleteCheckpoint",
-  ];
+  const modes = ["Outer", "Inner", "Start", "Checkpoint", "Finish", "Arrow"];
   modes.forEach(
     (mode) =>
       (document.getElementById("mode" + mode).onclick = () =>

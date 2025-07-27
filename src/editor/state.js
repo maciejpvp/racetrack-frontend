@@ -1,5 +1,3 @@
-import { draw } from "./draw.js";
-
 export const state = {
   mode: "outer",
   outerBoundary: [],
@@ -20,45 +18,60 @@ export const state = {
     } else if (this.mode === "start") {
       this.startPosition = { x, y };
     } else if (this.mode === "checkpoint" || this.mode === "finish") {
-      if (!this.lineStart) this.lineStart = { x, y };
-      else {
+      if (!this.lineStart) {
+        this.lineStart = { x, y };
+      } else {
         const line = { a: this.lineStart, b: { x, y } };
-        if (this.mode === "checkpoint") this.checkpoints.push(line);
-        else this.finish = line;
+        if (this.mode === "checkpoint") {
+          this.checkpoints.push(line);
+        } else {
+          this.finish = line;
+        }
         this.lineStart = null;
       }
     } else if (this.mode === "arrow") {
       const existing = this.directionArrows.find((a) => a.x === x && a.y === y);
-      if (existing) existing.angle = (existing.angle + 15) % 360;
-      else this.directionArrows.push({ x, y, angle: 0 });
+      if (existing) {
+        existing.angle = (existing.angle + 15) % 360;
+      } else {
+        this.directionArrows.push({ x, y, angle: 0 });
+      }
     } else if (this.mode === "deleteArrow") {
-      const index = this.directionArrows.findIndex(
-        (a) => a.x === x && a.y === y,
-      );
+      const clickX = x * this.GRID_SIZE + this.GRID_SIZE / 2;
+      const clickY = y * this.GRID_SIZE + this.GRID_SIZE / 2;
+      const radius = 15;
+
+      const index = this.directionArrows.findIndex(({ x: ax, y: ay }) => {
+        const arrowX = ax * this.GRID_SIZE + this.GRID_SIZE / 2;
+        const arrowY = ay * this.GRID_SIZE + this.GRID_SIZE / 2;
+        return Math.hypot(arrowX - clickX, arrowY - clickY) < radius;
+      });
+
       if (index !== -1) this.directionArrows.splice(index, 1);
     } else if (this.mode === "deleteCheckpoint") {
-      const tolerance = 0.5;
-      const dist = (p, a, b) => {
-        const toCoord = (pt) => ({
-          x: pt.x * this.GRID_SIZE + this.GRID_SIZE / 2,
-          y: pt.y * this.GRID_SIZE + this.GRID_SIZE / 2,
-        });
-        const p0 = toCoord(p),
-          p1 = toCoord(a),
-          p2 = toCoord(b);
-        const dx = p2.x - p1.x,
-          dy = p2.y - p1.y;
+      const clickX = x * this.GRID_SIZE + this.GRID_SIZE / 2;
+      const clickY = y * this.GRID_SIZE + this.GRID_SIZE / 2;
+      const tolerance = 10;
+
+      const distToSegment = (px, py, ax, ay, bx, by) => {
+        const dx = bx - ax;
+        const dy = by - ay;
         const lengthSq = dx * dx + dy * dy;
-        const t = Math.max(
-          0,
-          Math.min(1, ((p0.x - p1.x) * dx + (p0.y - p1.y) * dy) / lengthSq),
-        );
-        const closest = { x: p1.x + t * dx, y: p1.y + t * dy };
-        return Math.hypot(p0.x - closest.x, p0.y - closest.y);
+        let t = ((px - ax) * dx + (py - ay) * dy) / lengthSq;
+        t = Math.max(0, Math.min(1, t));
+        const cx = ax + t * dx;
+        const cy = ay + t * dy;
+        return Math.hypot(px - cx, py - cy);
       };
-      const index = this.checkpoints.findIndex(
-        (cp) => dist({ x, y }, cp.a, cp.b) < this.GRID_SIZE * tolerance,
-      );
+
+      const index = this.checkpoints.findIndex(({ a, b }) => {
+        const ax = a.x * this.GRID_SIZE + this.GRID_SIZE / 2;
+        const ay = a.y * this.GRID_SIZE + this.GRID_SIZE / 2;
+        const bx = b.x * this.GRID_SIZE + this.GRID_SIZE / 2;
+        const by = b.y * this.GRID_SIZE + this.GRID_SIZE / 2;
+        return distToSegment(clickX, clickY, ax, ay, bx, by) < tolerance;
+      });
+
       if (index !== -1) this.checkpoints.splice(index, 1);
     }
   },

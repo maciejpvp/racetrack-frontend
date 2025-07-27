@@ -2,27 +2,65 @@ body {
   margin: 0;
   background: #111;
   color: white;
-  font-family: sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 canvas {
   display: block;
   background: #222;
   cursor: crosshair;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
 }
 
 #controls {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 15px;
+  background: rgba(20, 20, 20, 0.95);
+  padding: 16px;
   border-radius: 10px;
   z-index: 10;
+  width: 320px;
+  user-select: none;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  max-width: 280px;
+  gap: 20px;
+}
+
+#controls h2 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.grid-section {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Grid layout for each section: 4 columns for buttons, 2 columns for labels+inputs */
+#drawingModes {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+#mapSettings {
+  grid-template-columns: 1fr 1fr;
+}
+
+#fileControls {
+  grid-template-columns: 1fr 1fr;
+}
+
+#overlayControls {
+  grid-template-columns: 1fr 1fr;
 }
 
 button,
@@ -30,24 +68,42 @@ input[type="text"],
 input[type="number"],
 input[type="file"],
 input[type="range"] {
-  width: 100%;
-  padding: 6px 8px;
-  font-size: 14px;
-  background: #333;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background: #2a2a2a;
   color: white;
-  border: none;
-  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease;
+}
+
+button {
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
 }
 
 button:hover {
-  background: #444;
-  cursor: pointer;
+  background-color: #3a3a3a;
+}
+
+input[type="file"] {
+  padding: 3px 5px;
 }
 
 label {
   display: flex;
   flex-direction: column;
-  font-size: 13px;
+  font-size: 11px;
+  color: #ccc;
+  gap: 2px;
+  user-select: none;
+}
+
+input[type="range"] {
+  cursor: pointer;
 }
 
 #overlayImage {
@@ -57,4 +113,5 @@ label {
   z-index: 1;
   pointer-events: none;
   opacity: 0.3;
+  user-select: none;
 }
