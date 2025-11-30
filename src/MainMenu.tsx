@@ -13,10 +13,12 @@ export const MainMenu = () => {
   const socket = useSocketStore((store) => store.socket);
   const [joinedQueue, setJoinedQueue] = useState(false);
   const [username, setUsername] = useState<string>(() => generateUsername());
+  const [singleplayer] = useState<boolean>(false);
 
   const joinQueue = () => {
     if (!socket) return;
-    socket.emit("join-queue", { username }, () => {
+
+    socket.emit("join-queue", { username, singleplayer }, () => {
       setJoinedQueue(true);
     });
   };

@@ -118,7 +118,10 @@ export const Game = ({ map }: Props) => {
   useEffect(() => {
     if (!socket) return;
 
-    const handler = (data: PlayerMovedData) => {
+    const handler = async (data: PlayerMovedData) => {
+      // wait 100 ms
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       setIsYourTurn(data.playerTurn === socket.id ? true : false);
       setLeaderboard(data.leaderboard);
 

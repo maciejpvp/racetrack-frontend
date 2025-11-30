@@ -22,7 +22,7 @@ export const Timer = ({ size = 90, onFinish }: TimerProps) => {
       if (!startTime) startTime = timestamp;
 
       const elapsed = timestamp - startTime;
-      const progressDegrees = Math.min((elapsed / 1000) * 360, 360);
+      const progressDegrees = Math.min((elapsed / 3000) * 360, 360);
       setDegrees(progressDegrees);
 
       if (progressDegrees < 360) {
